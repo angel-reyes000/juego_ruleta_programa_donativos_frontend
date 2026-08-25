@@ -1,16 +1,21 @@
+"use client"
+
 import Link from 'next/link';
-import { FaCircle } from 'react-icons/fa'
+import { FaCircle } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 let decription = `Vive la emoción de participar y pon a prueba tu suerte. Entra a una dinámica de 5 rondas donde cada giro de la ruleta te acerca más al premio. Con miles de participantes, números asignados aleatoriamente y premios en diferentes etapas.`
 
 export default function Home () {
+  const router = useRouter();
+
   return (
     <>
     <div className="flex flex-col bg-[url('/images/fondo_incio.jpg')] h-full bg-center bg-cover bg-no-repeat py-3 px-10 md:px-20">
       <header className='h-auto'>
         <nav className='flex justify-between items-center w-full'>
           <FaCircle size={30} className='text-blue-300'/>
-          <p className='p-3 text-white text-md md:text-xl rounded-sm font-semibold cursor-pointer hover:bg-[rgb(255,255,255,0.3)] hover:text-black'>Iniciar sesion</p>
+          <p onClick={() => router.push('/login')} className='p-3 text-white text-md md:text-xl rounded-sm font-semibold cursor-pointer hover:bg-[rgb(255,255,255,0.3)] hover:text-black'>Iniciar sesion</p>
         </nav>
       </header>
       <main className='flex items-center h-dvh pb-20 md:pb-30'>
