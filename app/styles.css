@@ -1,0 +1,15 @@
+.animation_mini_ruleta {
+    animation-name: mini_ruleta_run;
+    animation-duration: 10s;
+    animation-timing-function: linear;
+    animation-delay: 0ms;
+    animation-iteration-count: infinite;
+}
+
+@keyframes mini_ruleta_run {
+    from {
+        transform: rotate(0deg);
+    } to {
+        transform: rotate(360deg);
+    }
+}
