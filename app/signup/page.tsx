@@ -5,6 +5,7 @@ import Image from 'next/image';
 import '../styles.css';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface User <T> {
     name: T
@@ -24,6 +25,50 @@ export default function Signup() {
         password: "",
         confirm_password: "",
     });
+    const [invalidData, setInvalidData] = useState<string>("");
+
+    const router = useRouter();
+
+    async function postUser (e: any) {
+        e.preventDefault()
+
+        if (user.password !== user.confirm_password) {
+            setInvalidData("Tu contraseña no es igual a la del campo 'confirmar contraseña'")
+            setTimeout(() => setInvalidData(""), 5000)
+            return
+        }
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/users`, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: user.name,
+                    last_name: user.last_name,
+                    phone_number: user.phone_number,
+                    email: user.email,
+                    password: user.password,
+                })
+            })
+
+            const data = await response.json()
+
+            if (response.status != 201) {
+                console.log("Error al crear usuario")
+                setInvalidData(() => data.error)
+                setTimeout(() => setInvalidData(""), 5000)
+                return 
+            }
+
+            setUser(prev => ({...prev, name: "", last_name: "", phone_number: "", email: "", password: "", confirm_password: ""}))
+            router.push('/login')
+
+        } catch (error) {
+            console.log("Error in postUser frontend: ", error)
+        }
+    }
 
     return (
         <>
@@ -46,7 +91,7 @@ export default function Signup() {
                         </label>                   
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Correo electronico:</span>
-                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="email" placeholder="ej. example@dominio.xxxx" required></input>
+                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="email" placeholder="ej. example@dominio.xxxx" maxLength={50} required></input>
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Contraseña:</span>
@@ -56,11 +101,11 @@ export default function Signup() {
                             <span className="font-semibold">Confirmar contraseña:</span>
                             <input value={user.confirm_password} onChange={(e) => setUser(prev => ({...prev, confirm_password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
                         </label>
+                        <p className='text-right w-full text-red-500 text-[0.8rem]'>{invalidData}</p>
                         <div className="flex justify-center w-full mt-10 mb-2">
-                            <button onClick={(e) => e.preventDefault} className="p-2 w-[90%] md:w-[70%] lg:w-[50%] font-semibold bg-gradient-to-r from-red-700 to-red-400 rounded-md cursor-pointer active:scale-95">Registrarse</button>
+                            <button onClick={(e) => postUser(e)} className="p-2 w-[90%] md:w-[70%] lg:w-[50%] font-semibold bg-gradient-to-r from-red-700 to-red-400 rounded-md cursor-pointer active:scale-95">Registrarse</button>
                         </div>
                     </form>
-                    <button onClick={() => console.log(user)}>clickkk</button>
                     <p className="text-white">¿Ya tienes una cuenta? <span className='text-blue-400 hover:underline cursor-pointer'><Link href={'/login'}>Iniciar sesion</Link></span></p> 
                 </div>
             </div>
