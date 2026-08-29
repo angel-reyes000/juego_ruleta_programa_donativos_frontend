@@ -58,8 +58,9 @@ export default function Login() {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center h-dvh bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat">
-                <div className="flex flex-col items-center py-7 px-10 rounded-xl h-auto w-[70%] md:w-[50%] lg:w-[30%] border-2 border-none bg-gradient-to-b from-[rgb(50,0,0,0.7)] to-[rgb(0,0,0,0.7)]">
+            <div className="flex flex-col justify-center items-center h-dvh">
+                <div className="absolute blur-[3px] h-dvh w-full bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
+                <div className="flex flex-col items-center py-7 px-10 rounded-xl shadow-[10px_0_40px_rgba(80,0,0,1),-10px_0_40px_rgba(80,0,0,1)] z-10 h-auto w-[70%] md:w-[50%] lg:w-[30%] border-2 border-none bg-gradient-to-b from-[rgb(50,0,0,0.7)] to-[rgb(0,0,0,0.7)]">
                     <h1 className="text-left text-3xl font-semibold text-white">Hola de nuevo!</h1>
                     <Image className='mt-5 mb-2 animation_mini_ruleta' src={mini_ruleta} height={100} width={100} alt='mini ruleta' />
                     <form onSubmit={(e) => loginUser(e)} className="flex flex-col md:flex-wrap justify-center items-center text-white w-full h-full gap-y-5">                                    
