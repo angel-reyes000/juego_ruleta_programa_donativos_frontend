@@ -66,7 +66,7 @@ export default function Home () {
           <section className='flex flex-col justify-center w-full lg:w-1/2 gap-5'>
             <h1 className='text-4xl md:text-6xl font-bold text-white'>Bienvenido al programa de donativos</h1>
             <p className='text-md md:text-lg text-white whitespace-pre-wrap'>{description}</p>
-            <button onClick={() => token ? '' : refModal.current?.showModal()} className='text-lg text-white mt-5 font-semibold rounded-md bg-gradient-to-r from-orange-400 to-yellow-500 w-[50%] md:w-[30%] p-2 cursor-pointer active:scale-95'>Comienza aqui!</button>
+            <button onClick={() => token ? router.push('/donar') : refModal.current?.showModal()} className='text-lg text-white mt-5 font-semibold rounded-md bg-gradient-to-r from-orange-400 to-yellow-500 w-[50%] md:w-[30%] p-2 cursor-pointer active:scale-95'>Comienza aqui!</button>
           </section>
         </main>
       </div>

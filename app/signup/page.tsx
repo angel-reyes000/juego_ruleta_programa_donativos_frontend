@@ -75,7 +75,7 @@ export default function Signup() {
             <div className="flex flex-col justify-center items-center h-dvh">
                 <div className="absolute blur-[3px] h-[200%] lg:h-dvh w-full bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
                 <div className="flex flex-col items-center justify-center mt-80 lg:mt-0 py-7 px-10 rounded-xl shadow-[10px_0_40px_rgba(90,0,0,1),-10px_0_40px_rgba(90,0,0,1)] z-10 h-auto w-[90%] md:w-[70%] lg:w-[50%] border-2 border-none bg-gradient-to-b from-[rgb(50,0,0,0.7)] to-[rgb(0,0,0,0.7)]">
-                    <h1 className="text-center text-3xl font-semibold text-white">Bienvenido, registrate para donar y poder participar!</h1>
+                    <h1 className="text-center text-3xl font-semibold text-white">Crear una nueva cuenta</h1>
                     <Image className='mt-5 mb-2 animation_mini_ruleta' src={mini_ruleta} height={100} width={100} alt='mini ruleta' />
                     <form className="flex flex-col md:flex-row md:flex-wrap justify-between text-white w-full h-full gap-y-5">                    
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
