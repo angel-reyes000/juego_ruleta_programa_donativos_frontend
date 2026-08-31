@@ -13,3 +13,25 @@
         transform: rotate(360deg);
     }
 }
+
+.main_background {
+    animation-name: move_color_background;
+    animation-duration: 3s;
+    animation-timing-function: linear;
+    animation-delay: 0ms;
+    animation-iteration-count: infinite;
+}
+
+@keyframes move_color_background {
+    0% {
+        background-color: rgb(20, 0, 0);
+    } 25% {
+        background-color: rgb(35, 0, 0);
+    } 50% {
+        background-color: rgb(40, 0, 0);
+    } 75% {
+        background-color: rgb(35, 0, 0);
+    } 100% {
+        background-color: rgb(20, 0, 0);
+    }
+}
