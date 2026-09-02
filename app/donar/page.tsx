@@ -31,7 +31,9 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
 
     const [celebration, setCelebration] = useState<boolean>(false);
 
-    const pay = async () => {
+    const pay = async (e: any) => {
+        e.preventDefault()
+
         try {
            if (!stripe || !elements) {
                 return;
@@ -63,14 +65,19 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
 
             if (result.paymentIntent?.status === "succeeded") {
                 console.log("Pago realizado correctamente");
-                setCelebration(true)
+                setCelebration(true);
+                setQuantity(0);
             }
 
             setLoading(false);
 
         } catch (error) {
-            console.log("Error en pay front")
-        }   
+            console.log("Error en pay front", error)
+            setLoading(false)
+            setError("Error al procesar el pago");
+        } finally {
+            setTimeout(() => setError(""), 15000)
+        }
     }
     
     return (
@@ -80,7 +87,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                 <Image src={personas_ayudando} className="object-cover" alt="personas ayudando" />
             </section>
             <section className="h-full">
-                <form className="flex flex-col items-center h-full w-full p-10 gap-10 text-white">
+                <form onSubmit={(e) => pay(e)} className="flex flex-col items-center h-full w-full p-10 gap-10 text-white">
                     <div className="grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] bg-linear-to-r from-[rgb(90,90,90)] to-[rgb(170,170,170)] w-[80%] sm:w-[60%] md:w-[80%] lg:w-[55%] rounded-xl p-5">
                         <div className="flex justify-between">
                             <Image src={chip} height={10} width={50} className="rounded-md" alt="chip tarjeta"/>
@@ -88,16 +95,16 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                         </div>
                         <div>
                             <p className="text-[0.9rem] font-semibold">Numero de tarjeta:</p>
-                            <p></p>
+                            <p>**** **** **** ****</p>
                         </div>
                         <div className="flex justify-between w-full">
                             <div>
                                 <p className="text-[0.9rem] font-semibold">Vencimiento:</p>
-                                <p></p>
+                                <p>xx / xx</p>
                             </div>                                
                             <div>
                                 <p className="text-[0.9rem] font-semibold">CVV:</p>
-                                <p></p>
+                                <p>***</p>
                             </div>
                         </div>
                     </div>
@@ -147,8 +154,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                                 />                                    
                             </label> 
                         </div>
-                    </div>
-                    {error && <p className="text-red-500">{error}</p>}
+                    </div>                    
                     <label className="flex flex-col text-[0.9rem] font-semibold w-[100%]">
                         <div>Cantidad a donar<span className="text-red-500">*</span></div>
                         <div className="flex gap-1 w-full">
@@ -156,6 +162,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                             <p>$ Pesos MXN</p>
                         </div>
                     </label>
+                    {error && <p className="text-red-500 m-0 text-right w-full">{error}</p>}
                     <label className="flex gap-2">
                         <input type="checkbox" className="cursor-pointer active:scale-80"/>
                         Acepto terminos y condiciones.                            
@@ -164,7 +171,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                         <Link href={'/'} className="flex items-center justify-center py-2 px-8 rounded-[200px] font-semibold cursor-pointer active:scale-90 hover:underline gap-1">
                             <FaArrowLeft />Regresar
                         </Link>
-                        <button onClick={pay}
+                        <button type="submit"
                             disabled={!stripe || !elements || loading}
                             className="flex items-center justify-center py-2 px-8 rounded-[200px] bg-red-900 hover:bg-[rgb(100,0,0)] font-semibold cursor-pointer active:scale-90 gap-1">
                             {loading? "Procesando...": `Donar $${quantity} MXN`}
