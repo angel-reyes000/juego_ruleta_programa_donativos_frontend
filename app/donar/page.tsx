@@ -7,7 +7,7 @@ import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import chip from '@/public/images/chip_credit_card.jpg';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import '@/app/styles.css';
 
 export default function Donar () {
@@ -40,7 +40,7 @@ export default function Donar () {
                                 <div>
                                     <p className="text-[0.9rem] font-semibold">Vencimiento:</p>
                                     <p>{dataCard.fechaVencimiento}</p>
-                                </div>
+                                </div>                                
                                 <div>
                                     <p className="text-[0.9rem] font-semibold">CVV:</p>
                                     <p>{dataCard.CVV}</p>
