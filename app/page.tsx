@@ -1,9 +1,8 @@
 "use client"
 
-import Link from 'next/link';
 import { FaCircle, FaPlus } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import mini_ruleta from '../public/images/mini_ruleta.png'
 import Image from 'next/image';
 import './styles.css';

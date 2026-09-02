@@ -35,7 +35,7 @@ export default function NavBar () {
     return (
         <>
             {/*-----------------------MENU FLOTANTE ORIGINAL---------------------------*/}
-            <header className='flex absolute fixed w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-1 px-6'>
+            <header className='flex absolute fixed w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-1 px-6 z-10'>
                 <FaCircle onClick={() => router.push('/')} size={50} className='text-white' />
                 <nav className='flex justify-end w-full'>
                     {paths.map(path => (
@@ -44,7 +44,7 @@ export default function NavBar () {
                 </nav>
             </header>
             {/*--------------------------MENU FAKE------------------------------*/ }
-            <div className='flex w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-1 px-6'>
+            <div className='flex w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-1 px-6 z-8'>
                 <FaCircle onClick={() => router.push('/')} size={50} className='text-white' />
                 <nav className='flex justify-end w-full'>
                     {paths.map(path => (
