@@ -23,7 +23,7 @@ const paths = [
     },
     {
         id: 4,
-        path: '/miCuenta',
+        path: '/acercaDe',
         name: 'Acerca de',
     },
 ]

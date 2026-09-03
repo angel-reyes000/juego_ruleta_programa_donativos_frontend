@@ -4,6 +4,7 @@ import NavBar from "@/components/navbar";
 import { useEffect, useState } from "react";
 import { FaUser, FaEdit, FaLock } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { MdApps } from 'react-icons/md';
 
 interface User<t>{
     name: t,
@@ -85,6 +86,16 @@ export default function MiCuenta () {
                         router.push('/')
                     }} className="w-full p-2 border rounded-lg hover:bg-[rgba(255,255,255,0.1)] cursor-pointer active:scale-95">Cerrar sesion
                     </button>
+                </div>
+                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
+                    <div className="flex items-center w-full text-lg font-bold gap-2">
+                      <MdApps />  
+                      <p>Aplicacion</p>
+                    </div>
+                    <div className="w-full sm:w-[45%]">
+                        <p className="font-semibold text-sm">Version:</p>
+                        <p>1.0.0</p>
+                    </div>
                 </div>
             </main>
         </>
