@@ -22,19 +22,72 @@ import DonationCelebration from "@/components/donationCelebration";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: any, quantity: number, clientSecret: string }) {
+async function createPayment ({ amount, cardHolder }: { amount: number, cardHolder: string }) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/createPayment`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                amount: amount,
+                card_holder: cardHolder,
+            })
+        })
+
+        if (response.status !== 200) {
+            console.log("Error al registrar pago")
+            return 
+        }
+
+        return;
+
+    } catch (error) {
+        console.log("Error in createPayment", error)
+    }    
+}
+
+function FormPayment () {
     const stripe = useStripe();
     const elements = useElements();
+    const [amount, setAmount] = useState<number>(0);
+    const [cardHolder, setCardHolder] = useState<string>("");
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
     const [celebration, setCelebration] = useState<boolean>(false);
 
     const pay = async (e: any) => {
         e.preventDefault()
 
         try {
+
+            const token = localStorage.getItem('token')
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/paymentIntent`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        "amount": amount,
+                        "card_holder": cardHolder,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (amount < 10) {
+                setError(data.error)
+            }
+
+            const clientSecret = await data.clientSecret;
+            console.log(clientSecret)
+
            if (!stripe || !elements) {
                 return;
             } 
@@ -49,9 +102,9 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                 setLoading(false);
                 return;
             }
-
+            
             const result = await stripe.confirmCardPayment(
-                clientSecret,
+                clientSecret!,
                 {
                     payment_method: {
                         card: cardNumber
@@ -65,8 +118,11 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
 
             if (result.paymentIntent?.status === "succeeded") {
                 console.log("Pago realizado correctamente");
+
+                createPayment({ amount, cardHolder });
+
                 setCelebration(true);
-                setQuantity(0);
+                setAmount(0);
             }
 
             setLoading(false);
@@ -76,7 +132,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
             setLoading(false)
             setError("Error al procesar el pago");
         } finally {
-            setTimeout(() => setError(""), 15000)
+            setTimeout(() => setError(""), 5000)
         }
     }
     
@@ -111,7 +167,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                     <div className="flex flex-col gap-5 w-full">
                         <label className="flex flex-col text-[0.9rem] font-semibold">
                             <div>Nombre y apellido del tarjetahabiente<span className="text-red-500">*</span></div>
-                            <input className="border-b-1 focus:outline-none font-normal" />
+                            <input value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} className="border-b-1 focus:outline-none font-normal" />
                         </label>
                         <label className="flex flex-col text-[0.9rem] font-semibold border-b-1">
                             <div>Numero de tarjeta<span className="text-red-500">*</span></div>
@@ -158,7 +214,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                     <label className="flex flex-col text-[0.9rem] font-semibold w-[100%]">
                         <div>Cantidad a donar<span className="text-red-500">*</span></div>
                         <div className="flex gap-1 w-full">
-                            <input value={quantity} onChange={(e) => setQuantity(e.target.value)} className="border-b-1 w-[150px] focus:outline-none font-normal" />
+                            <input value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="border-b-1 w-[150px] focus:outline-none font-normal" />
                             <p>$ Pesos MXN</p>
                         </div>
                     </label>
@@ -174,7 +230,7 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
                         <button type="submit"
                             disabled={!stripe || !elements || loading}
                             className="flex items-center justify-center py-2 px-8 rounded-[200px] bg-red-900 hover:bg-[rgb(100,0,0)] font-semibold cursor-pointer active:scale-90 gap-1">
-                            {loading? "Procesando...": `Donar $${quantity} MXN`}
+                            {loading? "Procesando...": `Donar $${amount} MXN`}
                         </button>
                     </div>
                 </form>
@@ -184,48 +240,12 @@ function FormPayment ({ setQuantity, quantity, clientSecret }: { setQuantity: an
 }
 
 export default function Donar () {
-    const [quantity, setQuantity] = useState<number>(0);
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
-
-    useEffect(() => {
-        const crearPago = async () => {
-
-            setClientSecret(null);
-
-            const token = localStorage.getItem('token')
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/createPayment`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        quantity,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            setClientSecret(data.clientSecret);
-
-        };
-
-        crearPago();
-
-    }, [quantity])
-
     return (
         <>
             <NavBar />
             <main className="grid md:grid-cols-[1fr_1fr] p-2 min-h-dvh max-h-full bg-[rgba(30,0,0)]">
                 <Elements stripe={stripePromise}>
-                    <FormPayment 
-                        setQuantity={setQuantity}
-                        quantity={quantity} 
-                        clientSecret={clientSecret!} 
-                    />
+                    <FormPayment />
                 </Elements>
             </main>                
         </>
