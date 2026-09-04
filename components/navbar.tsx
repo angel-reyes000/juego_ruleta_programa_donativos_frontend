@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link';
-import { FaBars, FaPlus } from 'react-icons/fa';
+import { FaBars, FaPlus, FaCog } from 'react-icons/fa';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
@@ -33,6 +33,7 @@ const paths = [
 
 export default function NavBar () {
     const [openMenu, setOpenMenu] = useState<boolean>(false);
+    const [role, setRole] = useState<string>("");
 
     const pathName = usePathname();
     const router = useRouter();
@@ -58,7 +59,14 @@ export default function NavBar () {
                     refModal.current?.showModal();
                 }
 
+                const role = data.role;
+
+                if (role && role === 'admin') {
+                    setRole("admin");
+                }
+
                 console.log(data)
+                console.log(role)
             }
 
             getDataUser();
@@ -91,17 +99,20 @@ export default function NavBar () {
             </dialog>
             {/*--------------------------MENU FAKE------------------------------*/ }
             <div className='flex w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-3 px-6 z-8'>
-                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden sm:block' alt='logo de la pagina' />
+                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden md:block' alt='logo de la pagina' />
                 <FaBars size={50} className='text-white sm:hidden' />
                 <nav className={'flex justify-end w-full'}>
                     {paths.map(path => (
-                        <Link key={path.id} href={path.path} className={'py-3 px-8 sm:block text-md rounded-4xl font-semibold hover:text-black hover:bg-[rgba(255,255,255,0.8)]' + (pathName === path.path ? ' text-black bg-[rgb(255,255,255,0.8)] ' : ' text-white ') + (openMenu ? ' block ' : 'hidden')}>{path.name}</Link>
+                        <Link key={path.id} href={path.path} className={'content-center text-center py-3 px-8 sm:block text-md rounded-4xl font-semibold hover:text-black hover:bg-[rgba(255,255,255,0.8)]' + (pathName === path.path ? ' text-black bg-[rgb(255,255,255,0.8)] ' : ' text-white ') + (openMenu ? ' block text-center ' : 'hidden')}>{path.name}</Link>
                     ))}
+                    {role === 'admin' ? (
+                        <button className='text-white cursor-pointer ml-8 px-2 active:scale-90 hover:bg-[rgb(255,255,255,0.8)] hover:text-black rounded-4xl'><FaCog size={30} /></button>
+                    ) : null}
                 </nav>
             </div>
             {/*-----------------------MENU FLOTANTE ORIGINAL---------------------------*/}
             <header className={'flex sm:flex-row absolute fixed w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-5 sm:py-3 px-6 z-10 gap-5 sm:gap-0' + (openMenu ? ' flex-col items-start ' : '')}>
-                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden sm:block cursor-pointer' alt='logo de la pagina' />
+                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden md:block cursor-pointer' alt='logo de la pagina' />
                 {openMenu ? (
                     <FaPlus onClick={() => setOpenMenu(!openMenu)} size={30} className='text-white sm:hidden rotate-45' />
                 ):(
@@ -109,8 +120,13 @@ export default function NavBar () {
                 )}
                 <nav className={'flex sm:flex-row sm:gap-0 justify-end w-full' + (openMenu ? ' flex-col gap-3 ' : '')}>
                     {paths.map(path => (
-                        <Link key={path.id} href={path.path} className={'py-3 px-8 sm:block text-md rounded-4xl font-semibold hover:text-black hover:bg-[rgb(255,255,255,0.8)]' + (pathName === path.path ? ' text-black bg-[rgb(255,255,255,0.8)] ' : ' text-white ') + (openMenu ? ' block text-center ' : 'hidden')}>{path.name}</Link>
+                        <Link key={path.id} href={path.path} className={'content-center text-center py-3 px-8 sm:block text-md rounded-4xl font-semibold hover:text-black hover:bg-[rgb(255,255,255,0.8)]' + (pathName === path.path ? ' text-black bg-[rgb(255,255,255,0.8)] ' : ' text-white ') + (openMenu ? ' block text-center ' : 'hidden')}>{path.name}</Link>
                     ))}
+                    {role === 'admin' ? (
+                        <button onClick={() => router.push('/configuracion')} className='text-white cursor-pointer ml-8 px-2 active:scale-90 hover:bg-[rgb(255,255,255,0.8)] hover:text-black rounded-4xl'>
+                            <FaCog size={30} />
+                        </button>
+                    ) : null}
                 </nav>
             </header>
         </>
