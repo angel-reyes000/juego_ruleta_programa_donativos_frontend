@@ -1,10 +1,11 @@
 "use client"
 
-import { FaCircle, FaPlus } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import mini_ruleta from '../public/images/mini_ruleta.png'
 import Image from 'next/image';
+import logo from '@/public/images/5_y_Gana-removebg-preview.png';
 import './styles.css';
 import 'aos/dist/aos.css';
 import AOS from 'aos';
@@ -57,7 +58,7 @@ export default function Home () {
       <div className="flex flex-col bg-[url('/images/fondo_incio.jpg')] h-full bg-center bg-cover bg-no-repeat py-3 px-10 md:px-20">
         <header className='h-auto'>
           <nav className='flex justify-between items-center w-full'>
-            <FaCircle size={30} className='text-blue-300'/>
+            <Image src={logo} height={50} width={50} className='text-blue-300' alt='logo' />
             <p onClick={() => token ? refModal.current?.showModal() : router.push('/login')} className='p-3 text-white text-md md:text-xl rounded-sm font-semibold cursor-pointer hover:bg-[rgb(255,255,255,0.3)] hover:text-black'>{token ? 'Cerrar sesion' : 'Iniciar sesion'}</p>
           </nav>
         </header>
