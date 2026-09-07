@@ -39,6 +39,7 @@ export default function Configuracion () {
         value: 0,
     })
     const [gameId, setGameId] = useState(0);
+    const [inputSearch, setInputSearch] = useState<string>("");
     const [error, setError] = useState<string>("");
 
     const router = useRouter();
@@ -329,7 +330,7 @@ export default function Configuracion () {
                     <div className='flex justify-between text-white w-full'>
                         <div className='flex items-center px-2 border-3 border-gray-400 rounded-lg gap-2'>
                             <FaSearch />
-                            <input className='focus:outline-none'></input>
+                            <input value={inputSearch} onChange={((e) => setInputSearch(e.target.value))} className='focus:outline-none'></input>
                         </div>
                         <button onClick={() => {
                                 refModalAdd.current?.showModal()
@@ -358,7 +359,12 @@ export default function Configuracion () {
                             </tr>
                         </thead>
                         <tbody>
-                            {gameList?.map((obj: Game) => (
+                            {gameList?.filter(obj => (
+                                obj.title.includes(inputSearch) ||
+                                obj.start_datetime.includes(inputSearch) ||
+                                obj.end_datetime.includes(inputSearch) ||
+                                obj.description.includes(inputSearch)
+                            )).map((obj: Game) => (
                                 <tr onClick={() => {
                                         setGameId(obj.id)
                                         setGame(obj)
