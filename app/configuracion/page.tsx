@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { FaEdit, FaSearch, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
 
 interface Prize {
-    id: number
+    id?: number
     name: string
     type: string
     value: number
+    round: number
 }
 
 interface Game {
-    id: number
+    id?: number
     title: string
     start_datetime: string
     end_datetime: string
@@ -24,7 +25,6 @@ interface Game {
 export default function Configuracion () {
     const [gameList, setGameList] = useState<Game[]>();
     const [game, setGame] = useState<Game>({
-        id: 0,
         title: "",
         start_datetime: "",
         end_datetime: "",
@@ -33,10 +33,10 @@ export default function Configuracion () {
         prize_list: [],
     });
     const [prize, setPrize] = useState<Prize>({
-        id: 0,
         name: "",
         type: "Dinero en efectivo",
         value: 0,
+        round: 1,
     })
     const [gameId, setGameId] = useState(0);
     const [inputSearch, setInputSearch] = useState<string>("");
@@ -173,8 +173,12 @@ export default function Configuracion () {
                         Valor$:
                         <input value={prize.value} onChange={(e) => setPrize(prev => ({...prize, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
+                    <label className='flex flex-col font-semibold w-[49%]'>
+                        ronda:
+                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prize, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                    </label>
                     <div className='flex items-end text-white font-semibold'>
-                        <button onClick={() => game.prize_list.length >= 10 ? setError("Maximo 10 premios.") : setGame(prev => ({...prev, prize_list: [...prev.prize_list, {id: prize.id++, name: prize.name, type: prize.type, value: prize.value}]}))}
+                        <button onClick={() => game.prize_list.length >= 10 ? setError("Maximo 10 premios.") : setGame(prev => ({...prev, prize_list: [...prev.prize_list, {name: prize.name, type: prize.type, value: prize.value, round: prize.round}]}))}
                             className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
                             <FaPlus />Agregar premio
                         </button>
@@ -185,6 +189,7 @@ export default function Configuracion () {
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Valor$</th>
+                                <th>Ronda</th>
                                 <th>Accion</th>
                             </tr>
                         </thead>
@@ -194,6 +199,7 @@ export default function Configuracion () {
                                     <td>{obj.name}</td>
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
+                                    <td>{obj.round}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => setGame(prev => ({...prev, prize_list: prev.prize_list.filter(prize => prize.id !== obj.id)}))}
                                             className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
@@ -271,8 +277,12 @@ export default function Configuracion () {
                         Valor$:
                         <input value={prize.value} onChange={(e) => setPrize(prev => ({...prize, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
+                    <label className='flex flex-col font-semibold w-[49%]'>
+                        Ronda:
+                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prize, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                    </label>
                     <div className='flex items-end text-white font-semibold'>
-                        <button onClick={() => game.prize_list.length >= 10 ? setError("Maximo 10 premios.") : setGame(prev => ({...prev, prize_list: [...prev.prize_list, {id: prize.id++, name: prize.name, type: prize.type, value: prize.value}]}))}
+                        <button onClick={() => setGame(prev => ({...prev, prize_list: [...prev.prize_list, {name: prize.name, type: prize.type, value: prize.value, round: prize.round}]}))}
                             className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
                             <FaPlus />Agregar premio
                         </button>
@@ -283,6 +293,7 @@ export default function Configuracion () {
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Valor$</th>
+                                <th>Ronda</th>
                                 <th>Accion</th>
                             </tr>
                         </thead>
@@ -292,6 +303,7 @@ export default function Configuracion () {
                                     <td>{obj.name}</td>
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
+                                    <td>{obj.round}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => setGame(prev => ({...prev, prize_list: prev.prize_list.filter(prize => prize.id !== obj.id)}))}
                                             className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
@@ -365,8 +377,7 @@ export default function Configuracion () {
                                 obj.end_datetime.includes(inputSearch) ||
                                 obj.description.includes(inputSearch)
                             )).map((obj: Game) => (
-                                <tr onClick={() => {
-                                        setGameId(obj.id)
+                                <tr key={obj.id} onClick={() => {
                                         setGame(obj)
                                         refModalEdit.current.showModal()
                                         refModalEdit.current.style.display = 'flex'
