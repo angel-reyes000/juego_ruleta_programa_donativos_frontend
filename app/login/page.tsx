@@ -70,7 +70,7 @@ export default function Login() {
                         </label>
                         <label className="flex flex-col w-full gap-1">
                             <span className="font-semibold">Contraseña:</span>
-                            <input value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="py-2 px-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="py-2 px-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
                         </label>
                         <p className='text-red-500 text-[0.8rem] w-full text-right'>{invalidData}</p>
                         <div className="flex justify-center w-full mt-10 mb-2">
