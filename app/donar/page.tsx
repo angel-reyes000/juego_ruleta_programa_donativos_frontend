@@ -54,6 +54,7 @@ function FormPayment () {
     const elements = useElements();
     const [amount, setAmount] = useState<number>(0);
     const [cardHolder, setCardHolder] = useState<string>("");
+    const [checkBox, setCheckBox] = useState<boolean>(false);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
@@ -76,6 +77,11 @@ function FormPayment () {
                 return
             }
 
+            if (!checkBox) {
+                setError("Debes aceptar terminos y condiciones.")
+                return
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/paymentIntent`, {
                     method: "POST",
                     headers: {
@@ -85,6 +91,7 @@ function FormPayment () {
                     body: JSON.stringify({
                         "amount": amount,
                         "card_holder": cardHolder,
+                        "check_box": checkBox,
                     }),
                 }
             );
@@ -228,7 +235,7 @@ function FormPayment () {
                     </label>
                     {error && <p className="text-red-500 m-0 text-right w-full">{error}</p>}
                     <label className="flex gap-2">
-                        <input type="checkbox" className="cursor-pointer active:scale-80"/>
+                        <input checked={checkBox} onChange={(e) => setCheckBox(e.target.checked)} type="checkbox" className="cursor-pointer active:scale-80"/>
                         Acepto terminos y condiciones.                            
                     </label>
                     <div className="flex justify-between w-full">
