@@ -573,10 +573,10 @@ export default function Configuracion () {
                                         refModalEdit.current.style.display = 'flex'
                                     }} 
                                     className='border-1 text-center hover:bg-gray-800 cursor-pointer'>
-                                    <td className='border-1 max-w-[20px] truncate'>{obj.title}</td>
-                                    <td className='border-1'>{`${obj.start_datetime?.split("T")[0]} - ${obj.start_datetime?.split("T")[1].slice(0, 5)}`}</td>
-                                    <td className='border-1'>{`${obj.end_datetime?.split("T")[0]} - ${obj.end_datetime?.split("T")[1].slice(0, 5)}`}</td>
-                                    <td className='border-1'>{obj.description}</td>
+                                    <td className='border-1 p-2 max-w-[100px] truncate'>{obj.title}</td>
+                                    <td className='border-1 p-2'>{`${obj.start_datetime?.split("T")[0]} - ${obj.start_datetime?.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='border-1 p-2'>{`${obj.end_datetime?.split("T")[0]} - ${obj.end_datetime?.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='border-1 p-2 max-w-[100px] truncate'>{obj.description}</td>
                                 </tr>
                             ))}
                         </tbody>
