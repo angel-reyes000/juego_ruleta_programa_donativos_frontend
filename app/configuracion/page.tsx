@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaEdit, FaSearch, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
 import mini_ruleta from '@/public/images/mini_ruleta.png';
 import Image from 'next/image';
+import '@/app/styles.css';
 
 interface Prize {
     id?: number
@@ -24,13 +25,15 @@ interface Game {
     prize_list: Prize[]
 }
 
+let temporalPrizeId = 1;
+
 export default function Configuracion () {
     const [gameList, setGameList] = useState<Game[]>();
     const [prizeList, setPrizeList] = useState<Prize[]>();
     const [game, setGame] = useState<Game>({
         title: "",
-        start_datetime: "000000T00000",
-        end_datetime: "000000T00000",
+        start_datetime: "",
+        end_datetime: "",
         max_capacity: 5000,
         description: "",
         prize_list: prizeList!,
@@ -123,7 +126,10 @@ export default function Configuracion () {
         } catch (error) {
             console.log("Error in postGame frontend.")
         } finally {
-            setTimeout(() => setErrorGame(""), 5000);
+            setTimeout(() => {
+                setErrorGame("")
+                setErrorPrize("");
+            }, 5000);
         }
     }
 
@@ -244,6 +250,28 @@ export default function Configuracion () {
         }
     }
 
+    function postPrizes () {
+        try {
+
+            if (prize.name.length > 100 || prize.round > 5 || prize.round < 1) {
+                setErrorPrize("Campos invalido")
+                return
+            }
+
+            if (!prize.name || !prize.type || !prize.value || !prize.round) {
+                setErrorPrize("Campos faltantes")
+                return
+            }
+
+            setGame(prev => ({...prev, prize_list: [...prev.prize_list, {id: temporalPrizeId++, name: prize.name, type: prize.type, value: prize.value, round: prize.round}]}))
+
+        } catch (error) {
+            console.log("Error in postPrizes: ", error)
+        } finally {
+            setTimeout(() => setErrorPrize(""), 5000);
+        }
+    }
+
     async function deletePrize (prizeId: number | undefined, gameId: number) {
 
         const token = localStorage.getItem('token');
@@ -355,8 +383,9 @@ export default function Configuracion () {
                         ronda:
                         <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
                     <div className='flex items-end text-white font-semibold'>
-                        <button onClick={() => game.prize_list.length >= 10 ? setErrorGame("Maximo 10 premios.") : setGame(prev => ({...prev, prize_list: [...prev.prize_list, {name: prize.name, type: prize.type, value: prize.value, round: prize.round}]}))}
+                        <button onClick={() => postPrizes()}
                             className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
                             <FaPlus />Agregar premio
                         </button>
@@ -372,7 +401,7 @@ export default function Configuracion () {
                             </tr>
                         </thead>
                         <tbody>
-                            {game.prize_list?.map(obj => (
+                            {game.prize_list?.map((obj) => (
                                 <tr key={obj.id} className='border-b-1 hover:bg-blue-200'>
                                     <td>{obj.name}</td>
                                     <td>{obj.type}</td>
@@ -436,6 +465,7 @@ export default function Configuracion () {
                         <input value={game.description} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
                 </div>
+                <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                 <h1 className='font-bold text-2xl'>Premios</h1>
                 <div className='flex flex-wrap justify-between gap-2'>
                     <label className='flex flex-col font-semibold w-[49%]'>
@@ -509,7 +539,7 @@ export default function Configuracion () {
                 </div>
             </dialog>
             {/*-----------------------------------------TABLE OF GAMES---------------------------------------------------*/}
-            <div className="flex flex-col h-auto p-10 bg-[rgb(30,0,0)] gap-15">
+            <div className="flex flex-col h-auto min-h-dvh p-10 bg-[rgb(30,0,0)] gap-15">
                 <div className='flex flex-col text-white gap-2'>
                     <p onClick={() => router.back()} className='cursor-pointer hover:text-blue-400 hover:underline'>{'< Regresar'}</p>
                     <h1 className='text-4xl'>Menu de configuracion</h1>
@@ -552,6 +582,7 @@ export default function Configuracion () {
                                 <th className='border-1'>Descripcion</th>
                             </tr>
                         </thead>
+                        {Array.isArray(gameList) ? (
                         <tbody>
                             {gameList?.filter(obj => (
                                 obj.title.includes(inputSearch) ||
@@ -580,6 +611,7 @@ export default function Configuracion () {
                                 </tr>
                             ))}
                         </tbody>
+                        ) : null}
                     </table>                    
                 </div>
             </div>
