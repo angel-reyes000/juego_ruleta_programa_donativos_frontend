@@ -66,6 +66,16 @@ function FormPayment () {
 
             const token = localStorage.getItem('token')
 
+            if (amount < 100) {
+                setError("La cantidad debe ser mayor de $100MXN.")
+                return
+            }
+
+            if (!cardHolder) {
+                setError("Campo faltante: Nombre y apellido de tarjetahabiente.")
+                return
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/paymentIntent`, {
                     method: "POST",
                     headers: {
@@ -81,9 +91,7 @@ function FormPayment () {
 
             const data = await response.json();
 
-            if (amount < 10) {
-                setError(data.error)
-            }
+            
 
             const clientSecret = await data.clientSecret;
             console.log(clientSecret)
