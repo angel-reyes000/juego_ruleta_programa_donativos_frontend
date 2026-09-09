@@ -585,10 +585,10 @@ export default function Configuracion () {
                         {Array.isArray(gameList) ? (
                         <tbody>
                             {gameList?.filter(obj => (
-                                obj.title.includes(inputSearch) ||
+                                obj.title.toLowerCase().includes(inputSearch.toLowerCase()) ||
                                 obj.start_datetime.includes(inputSearch) ||
                                 obj.end_datetime.includes(inputSearch) ||
-                                obj.description.includes(inputSearch)
+                                obj.description.toLowerCase().includes(inputSearch.toLowerCase())
                             )).map((obj: Game) => (
                                 <tr key={obj.id} onClick={() => {
                                         setGameId(obj.id!);
