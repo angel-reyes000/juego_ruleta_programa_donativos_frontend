@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEdit, FaSearch, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
+import mini_ruleta from '@/public/images/mini_ruleta.png';
+import Image from 'next/image';
 
 interface Prize {
     id?: number
@@ -27,8 +29,8 @@ export default function Configuracion () {
     const [prizeList, setPrizeList] = useState<Prize[]>();
     const [game, setGame] = useState<Game>({
         title: "",
-        start_datetime: "",
-        end_datetime: "",
+        start_datetime: "000000T00000",
+        end_datetime: "000000T00000",
         max_capacity: 5000,
         description: "",
         prize_list: prizeList!,
@@ -45,6 +47,7 @@ export default function Configuracion () {
     const [errorPrize, setErrorPrize] = useState<string>("");
 
     const router = useRouter();
+    const refModalWarning = useRef<any>(null);
     const refModalAdd = useRef<any>(null);
     const refModalEdit = useRef<any>(null);
 
@@ -66,6 +69,10 @@ export default function Configuracion () {
                         'authorization': `Bearer ${token}`
                     }
                 })
+
+                if (response.status != 200) {
+                    refModalWarning.current?.showModal();
+                }
 
                 const data = await response.json();
 
@@ -150,6 +157,7 @@ export default function Configuracion () {
             }
 
             setGameList(prev => prev?.map(obj => obj.id === data.id ? {
+                    id: data.id,
                     title: data.title,
                     start_datetime: data.start_datetime,
                     end_datetime: data.end_datetime,
@@ -236,8 +244,60 @@ export default function Configuracion () {
         }
     }
 
+    async function deletePrize (prizeId: number | undefined, gameId: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/deletePrize`, {
+                method: 'DELETE',
+                headers: {
+                    'content-type': 'application/json',
+                    'authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    prize_id: prizeId,
+                    game_id: gameId,
+                })
+            })
+
+            const data = await response.json();
+
+            if (response.status !== 200) {
+                setErrorPrize(data.error)
+                return 
+            }
+
+            setPrizeList((prev: any) => prev?.filter((obj: Prize) => obj.id !== prizeId))
+
+        } catch (error) {
+            console.log("Error in deletePrizes frontend.")
+        } finally {
+            setTimeout(() => setErrorPrize(""), 5000);
+        }
+    }
+
     return (
         <>
+            {/*-----------------------------------------MODAL WARNING---------------------------------------------------*/}
+            <dialog ref={refModalWarning} className='bg-[rgba(50,0,0,0.9)] m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
+                <div className='flex flex-col p-5 gap-5'>
+                    <div className='flex justify-start items-center w-full'>
+                        <p onClick={() => router.push('/')} className='text-white cursor-pointer active:scale-90 hover:underline hover:text-blue-400'>{'< '}regresar</p>
+                    </div>
+                    <div className='flex justify-center w-full'>
+                        <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                    </div>
+                    <p className='font-semibold text-white text-[1.1rem] m-0 p-0'>
+                        Tu sesion a expirado, inicia sesion para poder continuar!.
+                    </p>
+                    <div className='flex justify-center items-center w-full'>
+                        <button onClick={() => router.push('/login')} className='p-2 w-[80%] rounded-md bg-gradient-to-r from-red-500 to-yellow-700 cursor-pointer active:scale-95 text-white'>
+                            Iniciar sesion
+                        </button>
+                    </div>
+                </div>
+            </dialog>
             {/*-----------------------------------------MODAL TO ADD GAMES---------------------------------------------------*/}
             <dialog ref={refModalAdd} className='flex flex-col m-auto w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
                 <div className='flex justify-between items-center font-bold text-2xl'>
@@ -424,7 +484,7 @@ export default function Configuracion () {
                                     <td>{obj.value}</td>
                                     <td>{obj.round}</td>
                                     <td className='flex justify-center py-2'>
-                                        <button onClick={() => setGame(prev => ({...prev, prize_list: prev.prize_list.filter(prize => prize.id !== obj.id)}))}
+                                        <button onClick={() => deletePrize(obj?.id, gameId)}
                                             className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
                                             <FaTrash />
                                         </button>
@@ -514,8 +574,8 @@ export default function Configuracion () {
                                     }} 
                                     className='border-1 text-center hover:bg-gray-800 cursor-pointer'>
                                     <td className='border-1 max-w-[20px] truncate'>{obj.title}</td>
-                                    <td className='border-1'>{`${obj.start_datetime.split("T")[0]} - ${obj.start_datetime.split("T")[1].slice(0, 5)}`}</td>
-                                    <td className='border-1'>{`${obj.end_datetime.split("T")[0]} - ${obj.end_datetime.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='border-1'>{`${obj.start_datetime?.split("T")[0]} - ${obj.start_datetime?.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='border-1'>{`${obj.end_datetime?.split("T")[0]} - ${obj.end_datetime?.split("T")[1].slice(0, 5)}`}</td>
                                     <td className='border-1'>{obj.description}</td>
                                 </tr>
                             ))}
