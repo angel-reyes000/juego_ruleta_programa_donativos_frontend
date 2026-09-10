@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import chip from '@/public/images/chip_credit_card.jpg';
 import { useEffect, useState } from 'react';
+import 'aos/dist/aos.css';
+import AOS from 'aos';
 import '@/app/styles.css';
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -59,6 +61,16 @@ function FormPayment () {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
     const [celebration, setCelebration] = useState<boolean>(false);
+
+    useEffect(() => {
+
+        AOS.init({
+            duration: 1000, 
+            delay: 0,
+            once: true,
+        })
+
+    }, [])
 
     const pay = async (e: any) => {
         e.preventDefault()
@@ -159,7 +171,7 @@ function FormPayment () {
             </section>
             <section className="h-full">
                 <form onSubmit={(e) => pay(e)} className="flex flex-col items-center h-full w-full p-10 gap-10 text-white">
-                    <div className="grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] bg-linear-to-r from-[rgb(90,90,90)] to-[rgb(170,170,170)] w-[80%] sm:w-[60%] md:w-[80%] lg:w-[55%] rounded-xl p-5">
+                    <div data-aos="zoom-in" className="grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] bg-linear-to-r from-[rgb(90,90,90)] to-[rgb(170,170,170)] w-[80%] sm:w-[60%] md:w-[80%] lg:w-[55%] rounded-xl p-5">
                         <div className="flex justify-between">
                             <Image src={chip} height={10} width={50} className="rounded-md" alt="chip tarjeta"/>
                             <p className="text-xl font-semibold">Tarjeta</p>
