@@ -19,7 +19,7 @@ const segments = {
     onRest: (event: any) => {
         console.log(event.currentIndex)
     },
-    itemLabelFontSizeMax: 40,
+    itemLabelFontSizeMax: 20,
 }
 
 export default function Roulette () {
