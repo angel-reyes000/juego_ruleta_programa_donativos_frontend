@@ -13,7 +13,6 @@ export default function Ruleta () {
                         <p className="flex items-center gap-2"><FaCircle className="text-red-500" />Juego inactivo</p>
                         <p>Jugadores: 3758 / 5000</p>
                     </div>
-                    
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <Roulette />
