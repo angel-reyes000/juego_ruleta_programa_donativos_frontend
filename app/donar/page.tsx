@@ -93,6 +93,11 @@ function FormPayment () {
                 return
             }
 
+            if (!amount || amount > 10000) {
+                setShowMessage({show: true, messages: ["Para donar cantidades superiores a $10,000 MXN contactenos."], type: "info"});
+                return
+            }
+
             if (!cardHolder) {
                 setError("Campo faltante: Nombre y apellido de tarjetahabiente.")
                 return
