@@ -35,3 +35,19 @@
         background-color: rgb(20, 0, 0);
     }
 }
+
+.messageFloating {
+    animation-name: move_message_floating;
+    animation-duration: 0.5s;
+    animation-delay: 0ms;
+    animation-timing-function: linear;
+    animation-iteration-count: 1;
+}
+
+@keyframes move_message_floating {
+    from {
+        transform: translate(300);
+    } to {
+        transform: translate(0);
+    }
+}

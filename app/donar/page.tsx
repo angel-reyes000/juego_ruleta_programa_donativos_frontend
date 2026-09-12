@@ -1,6 +1,8 @@
 "use client"
 
 import NavBar from "@/components/navbar";
+import MessageFloating from "@/components/messageFloating";
+import { messageFloating } from "@/components/messageFloating";
 import personas_ayudando from '@/public/images/personas_ayudando.jpg';
 import Image from 'next/image';
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
@@ -39,12 +41,14 @@ async function createPayment ({ amount, cardHolder }: { amount: number, cardHold
             })
         })
 
+        const data = await response.json()
+
         if (response.status !== 200) {
             console.log("Error al registrar pago")
-            return 
+            return data.error
         }
 
-        return;
+        return data.message
 
     } catch (error) {
         console.log("Error in createPayment", error)
@@ -61,6 +65,11 @@ function FormPayment () {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
     const [celebration, setCelebration] = useState<boolean>(false);
+    const [showMessage, setShowMessage] = useState<messageFloating>({
+        show: false,
+        messages: [],
+        type: "info",
+    });
 
     useEffect(() => {
 
@@ -146,7 +155,8 @@ function FormPayment () {
             if (result.paymentIntent?.status === "succeeded") {
                 console.log("Pago realizado correctamente");
 
-                createPayment({ amount, cardHolder });
+                const message = await createPayment({ amount, cardHolder });
+                setShowMessage({show: true, messages: ["Pago realizado correctamente", message,], type: "good"});
 
                 setCelebration(true);
                 setAmount(0);
@@ -158,13 +168,18 @@ function FormPayment () {
             console.log("Error en pay front", error)
             setLoading(false)
             setError("Error al procesar el pago");
+            setShowMessage({show: true, messages: ["Error al procesar el pago"], type: "bad"});
         } finally {
-            setTimeout(() => setError(""), 5000)
+            setTimeout(() => {
+                setError("")
+                setShowMessage({show: false, messages: [], type: "info"});
+            }, 10000)
         }
     }
     
     return (
         <>
+            {showMessage ? <MessageFloating show={showMessage.show} messages={showMessage.messages} type={showMessage.type} /> : null}
             {celebration ? <DonationCelebration setCelebration={setCelebration} /> : null}
             <section className="flex justify-center h-full hidden md:flex">
                 <Image src={personas_ayudando} className="object-cover" alt="personas ayudando" />
@@ -244,6 +259,7 @@ function FormPayment () {
                             <input value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="border-b-1 w-[150px] focus:outline-none font-normal" />
                             <p>$ Pesos MXN</p>
                         </div>
+                        <p className="text-[0.8rem] text-gray-400">Solo se aceptan cantidades en múltiplos de $100 (ej. $100, $200, $300).</p>
                     </label>
                     {error && <p className="text-red-500 m-0 text-right w-full">{error}</p>}
                     <label className="flex gap-2">

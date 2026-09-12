@@ -1,17 +1,20 @@
 import NavBar from "@/components/navbar";
 import Roulette from '@/components/ruleta';
-import { FaArrowAltCircleRight, FaCircle } from "react-icons/fa";
+import { FaArrowAltCircleRight, FaCircle, FaTicketAlt } from "react-icons/fa";
 
 export default function Ruleta () {
     return (
         <>
             <NavBar />
-            <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-10">
+            <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-5">
                 <div className="flex justify-between items-center text-white">
                     <h1 className="text-3xl font-bold w-[70%] lg:w-[50%]">Juego de ruleta para donaciones mayores a 100 pesos (Titulo de ruleta)</h1>
-                    <div>
-                        <p className="flex items-center gap-2"><FaCircle className="text-red-500" />Juego inactivo</p>
-                        <p>Jugadores: 3758 / 5000</p>
+                    <div className="flex flex-col items-end gap-5">
+                        <p className="font-bold text-2xl">Tus tickets: 1 <FaTicketAlt className="inline rotate-125"/></p>
+                        <div className="flex gap-10">
+                            <p>Jugadores: 3758 / 5000</p>
+                            <p className="flex items-center gap-2"><FaCircle className="text-red-500" />Juego inactivo</p>
+                        </div>                    
                     </div>
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
@@ -74,8 +77,7 @@ export default function Ruleta () {
                                     <p>Giro 1</p>
                                     <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 7</p>
                                 </div> 
-                            </div>
-                            
+                            </div>                            
                         </div>
                     </div>
                 </div>
