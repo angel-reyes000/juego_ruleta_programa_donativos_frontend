@@ -7,9 +7,9 @@ export default function Ruleta () {
         <>
             <NavBar />
             <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-5">
-                <div className="flex justify-between items-center text-white">
-                    <h1 className="text-3xl font-bold w-[70%] lg:w-[50%]">Juego de ruleta para donaciones mayores a 100 pesos (Titulo de ruleta)</h1>
-                    <div className="flex flex-col items-end gap-5">
+                <div className="flex flex-col md:flex-row justify-between items-center text-white gap-10">
+                    <h1 className="text-3xl font-bold w-full md:w-[70%] lg:w-[50%]">Juego de ruleta para donaciones mayores a 100 pesos (Titulo de ruleta)</h1>
+                    <div className="flex flex-row md:flex-col items-center md:items-end gap-5">
                         <p className="font-bold text-2xl">Tus tickets: 1 <FaTicketAlt className="inline rotate-125"/></p>
                         <div className="flex gap-10">
                             <p>Jugadores: 3758 / 5000</p>
