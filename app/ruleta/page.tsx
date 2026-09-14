@@ -51,6 +51,13 @@ interface RoundData {
     total_current_spins: number
 }
 
+interface TicketData {
+    id?: number
+    user_id?: number
+    game_id?: number
+    donation_id?: number
+}
+
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
     const [currentRoundData, setCurrentRoundData] = useState<RoundData>({
@@ -59,6 +66,9 @@ export default function Ruleta () {
         spins: 0,
         total_current_spins: 0,
     });
+    const [currentTickets, setCurrentTickets] = useState<TicketData>();
+    const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
+
     const [role, setRole] = useState<string>();
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
@@ -109,7 +119,8 @@ export default function Ruleta () {
 
                 console.log(dataGame);
                 setCurrentGameData(dataGame);
-                getCurrentRoundGame(dataGame.id, false)
+                getCurrentRoundGame(dataGame.id, false);
+                getTickets(dataGame.id);
 
             } catch (error) {
                 refModal.current?.showModal();
@@ -148,6 +159,34 @@ export default function Ruleta () {
         }
 
     }, [])
+
+    async function getTickets (game_id: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getTickets?game_id=${game_id}`, {
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                },
+            })
+
+            const dataTickets = await response.json()
+
+            if (response.status != 200) {
+                console.log("Error al obtener tickets.")
+                return
+            }
+
+            const total_tickets = dataTickets.length;
+            setCurrentTickets(dataTickets);
+            setCurrentTotalTickets(total_tickets);
+
+        } catch (error) {
+            console.log("Error in getTickets: ", error)
+        }
+    }
 
     async function postSpin (round_id: number, total_current_spins: number) {
 
@@ -246,7 +285,7 @@ export default function Ruleta () {
                         <h1 className="text-3xl font-bold w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
                         <div className='flex flex-col text-end gap-1'>
                             <p className='text-[0.9rem]'>Fecha de finalizacion del juego: <span className='font-semibold'>{`${currentGameData?.end_datetime.split("T")[0]} - ${currentGameData?.end_datetime.split("T")[1].slice(0, 5)}hrs`}</span></p>
-                            <p className="font-bold text-2xl">Tus tickets: 1 <FaTicketAlt className="inline rotate-125"/></p>
+                            <p className="flex justify-end items-center font-bold text-2xl gap-1">Tus tickets: {currentTotalTickets}<FaTicketAlt className="inline rotate-125"/></p>
                         </div>                        
                     </div>
                     <div className="flex flex-row justify-around items-center w-full gap-5">
