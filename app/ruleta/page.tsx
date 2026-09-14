@@ -4,7 +4,13 @@ import { Wheel } from 'spin-wheel';
 import { io } from 'socket.io-client';
 import NavBar from "@/components/navbar";
 import { useEffect, useState, useRef } from "react";
-import { FaArrowAltCircleRight, FaCircle, FaTicketAlt } from "react-icons/fa";
+import { FaArrowAltCircleRight, FaCircle, FaTicketAlt, FaPlus } from "react-icons/fa";
+import mini_ruleta from '@/public/images/mini_ruleta.png';
+import '@/app/styles.css';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import MessageFloating from '@/components/messageFloating';
+import { messageFloating, messageType } from '@/components/messageFloating';
 
 const socket = io(`${process.env.NEXT_PUBLIC_BACKEND_API}`);
 
@@ -38,20 +44,32 @@ interface GameData {
 }
 
 interface RoundData {
-    id: number
+    id?: number
     game_id: number
     number: number
     spins: number
+    total_current_spins: number
 }
 
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
-    const [currentRoundData, setCurrentRoundData] = useState<RoundData>();
+    const [currentRoundData, setCurrentRoundData] = useState<RoundData>({
+        game_id: 0,
+        number: 1,
+        spins: 0,
+        total_current_spins: 0,
+    });
+    const [role, setRole] = useState<string>();
+    const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
+    const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
     // const [winningNumber, setWinningNumber] = useState<number>();
 
     // const refWinningNumber = useRef<number | null | undefined>(null);
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
+    const refModal = useRef<HTMLDialogElement>(null);
+
+    const router = useRouter();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -94,11 +112,35 @@ export default function Ruleta () {
                 getCurrentRoundGame(dataGame.id, false)
 
             } catch (error) {
+                refModal.current?.showModal();
                 console.log("Error in getCurrentGame frontend: ", error)
             }
         }
 
         getCurrentGame();
+
+        async function getDataUser () {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getDataUser`, {
+                    method: 'GET',
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    }
+                })
+
+                const data = await response.json();
+
+                const role = data.role;
+
+                if (role && role === 'admin') {
+                    setRole("admin");
+                } 
+            } catch (error) {
+                console.log("Error in Ruleta/getDataUser: ", error)
+            }
+        }
+
+        getDataUser();
 
         return () => {
             roulette.remove();
@@ -107,7 +149,7 @@ export default function Ruleta () {
 
     }, [])
 
-    async function postSpin (round_id: number) {
+    async function postSpin (round_id: number, total_current_spins: number) {
 
         const token = localStorage.getItem('token');
 
@@ -120,15 +162,17 @@ export default function Ruleta () {
                 },
                 body: JSON.stringify({
                     round_id: round_id,
+                    total_current_spins: total_current_spins,
                 })
             })
 
-            if (response.status != 200) {
-                console.log("Error al registrar el giro. Giro invalido.");
-                return
-            }
-
             const dataSpin = await response.json();
+
+            if (response.status != 200) {
+                setShowMessageFloating(true);
+                setMessageFloating({show: true, messages: dataSpin.error, type: 'bad'});
+                return;
+            }
 
             console.log("DATOS DE GIRO: ", dataSpin)
 
@@ -137,7 +181,11 @@ export default function Ruleta () {
             socket.emit("spin", winning_number);
 
         } catch (error) {
+            setShowMessageFloating(true);
+            setMessageFloating({show: true, messages: ["Error al realizar el giro, intentalo de nuevo."], type: 'bad'});
             console.log("Error in postSpin: ", error)
+        } finally {
+            setTimeout(() => setShowMessageFloating(false), 10000)
         }
     }
 
@@ -163,10 +211,11 @@ export default function Ruleta () {
             const dataRound = await response.json();
 
             console.log(dataRound)
-            setCurrentRoundData(dataRound);
+            setCurrentRoundData((prev: any) => ({...prev, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
 
             if(makePostSpin) {
-                postSpin(dataRound.id)
+                await postSpin(dataRound.id, dataRound.total_current_spins);
+                await getCurrentRoundGame(game_id, false);
             }
 
         } catch (error) {
@@ -177,26 +226,47 @@ export default function Ruleta () {
     return (
         <>
             <NavBar />
+            <dialog ref={refModal} className='backdrop:bg-black/80 bg-[rgba(0,0,0,0)] border-1 border-red-700 m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
+                <div className='flex flex-col bg-[rgba(50,0,0,0.9)] p-5 gap-5'>
+                    <div className='flex justify-start items-center w-full'>
+                        <p onClick={() => router.back()} className='text-white cursor-pointer active:scale-90 hover:underline hover:text-blue-400'>{'< '}regresar</p>
+                    </div>
+                    <div className='flex justify-center w-full'>
+                        <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                    </div>
+                    <p className='font-semibold text-white text-[1.1rem] m-0 p-0'>
+                        No hay juegos activos, regresa mas tarde!.
+                    </p>
+                </div>
+            </dialog>
             <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-5">
-                <div className="flex flex-col md:flex-row justify-between items-center text-white gap-10">
-                    <h1 className="text-3xl font-bold w-full md:w-[70%] lg:w-[50%]">Juego de ruleta para donaciones mayores a 100 pesos (Titulo de ruleta)</h1>
-                    <div className="flex flex-row md:flex-col items-center md:items-end gap-5">
-                        <p className="font-bold text-2xl">Tus tickets: 1 <FaTicketAlt className="inline rotate-125"/></p>
-                        <div className="flex gap-10">
-                            <p>Jugadores: 3758 / 5000</p>
-                            <p className="flex items-center gap-2"><FaCircle className="text-red-500" />Juego inactivo</p>
-                        </div>                    
+                {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
+                <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
+                    <div className='flex justify-between w-full'>
+                        <h1 className="text-3xl font-bold w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
+                        <div className='flex flex-col text-end gap-1'>
+                            <p className='text-[0.9rem]'>Fecha de finalizacion del juego: <span className='font-semibold'>{`${currentGameData?.end_datetime.split("T")[0]} - ${currentGameData?.end_datetime.split("T")[1].slice(0, 5)}hrs`}</span></p>
+                            <p className="font-bold text-2xl">Tus tickets: 1 <FaTicketAlt className="inline rotate-125"/></p>
+                        </div>                        
+                    </div>
+                    <div className="flex flex-row justify-around items-center w-full gap-5">
+                        <p>{`Ronda: ${currentRoundData?.number}/5`}</p>
+                        <p>{`Giros ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
+                        <p>Jugadores: 3758 / 5000</p>
                     </div>
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <div className='flex flex-col justify-center items-center gap-5'>
                         <div className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px]' ref={refDivRoulette} />
-                        <button onClick={ () => {
-                            getCurrentRoundGame(currentGameData!.id, true)
-                        }} 
-                        className='w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95'>
-                            Girar
-                        </button>
+                        {role === 'admin' ? (
+                            <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true)} 
+                                className={'w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
+                                    Girar
+                            </button>  
+                        ) : null}    
+                        {currentRoundData?.total_current_spins >= 10 ? (
+                            <p className='text-xl text-red-600 font-bold'>Juego finalizado.</p>
+                        ) : null}                                            
                     </div>
                     <div className="flex flex-col justify-center items-center gap-5">
                         <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
