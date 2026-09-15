@@ -332,7 +332,6 @@ export default function Ruleta () {
                                     <p className="flex items-center gap-2">10 <FaArrowAltCircleRight /> 10</p>
                                 </div> 
                             </div>
-                            
                         </div>
                         <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-semibold text-xl">Ultimos resultados</h1>
