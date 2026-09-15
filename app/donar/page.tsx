@@ -185,7 +185,7 @@ function FormPayment () {
     return (
         <>
             {showMessage ? <MessageFloating show={showMessage.show} messages={showMessage.messages} type={showMessage.type} /> : null}
-            {celebration ? <DonationCelebration setCelebration={setCelebration} /> : null}
+            {/*celebration ? <DonationCelebration setCelebration={setCelebration} /> : null*/}
             <section className="flex justify-center h-full hidden md:flex">
                 <Image src={personas_ayudando} className="object-cover" alt="personas ayudando" />
             </section>
