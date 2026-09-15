@@ -68,6 +68,7 @@ export default function Ruleta () {
     });
     const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
+    const [winningNumber, setWinningNumber] = useState<number>();
 
     const [role, setRole] = useState<string>();
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
@@ -188,6 +189,40 @@ export default function Ruleta () {
         }
     }
 
+    async function deleteTicket (game_id?: number, winning_number?: number) {
+
+        const token = localStorage.getItem('token');
+
+        console.log("OAKOAKKOAAKA: ", game_id, winning_number)
+
+        try {
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/deleteTicket`, {
+                method: 'DELETE',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: game_id,
+                    winning_number: winning_number,
+                })
+            })
+
+            const data = await response.json();
+
+            if (response.status != 200) {
+                console.log("Error en response deleteTicket.")
+                return
+            }
+
+            console.log("numeros borrados: ", data);
+
+        } catch (error) {
+            console.log("Error in deleteTicket frontend: ", error)
+        }
+    }
+
     async function postSpin (round_id: number, total_current_spins: number) {
 
         const token = localStorage.getItem('token');
@@ -215,7 +250,10 @@ export default function Ruleta () {
 
             console.log("DATOS DE GIRO: ", dataSpin)
 
-            const winning_number = dataSpin.winning_number
+            const winning_number = await dataSpin.winning_number
+
+            deleteTicket(currentGameData?.id, dataSpin.winning_number)
+            //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
 
             socket.emit("spin", winning_number);
 
