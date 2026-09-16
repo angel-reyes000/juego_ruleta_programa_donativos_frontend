@@ -13,6 +13,7 @@ interface Prize {
     type: string
     value: number
     round: number
+    roulette_number: number
 }
 
 interface Game {
@@ -43,6 +44,7 @@ export default function Configuracion () {
         type: "Dinero en efectivo",
         value: 0,
         round: 1,
+        roulette_number: 0
     })
     const [gameId, setGameId] = useState(0);
     const [inputSearch, setInputSearch] = useState<string>("");
@@ -226,6 +228,7 @@ export default function Configuracion () {
                     type: prize.type,
                     value: prize.value,
                     round: prize.round,
+                    roulette_number: prize.roulette_number,
                     game_id: gameId, 
                 })
             })
@@ -241,7 +244,16 @@ export default function Configuracion () {
                 return 
             }
             console.log(prizeList)
-            setPrizeList((prev: any) => [...prev, {id: data.id, name: data.name, type: data.type, round: data.round, value: data.value, game_id: gameId}])
+            setPrizeList((prev: any) => [...prev, {
+                    id: data.id, 
+                    name: data.name, 
+                    type: data.type, 
+                    value: data.value, 
+                    round: data.round, 
+                    roulette_number: data.roulette_number, 
+                    game_id: gameId,
+                }
+            ]);
 
         } catch (error) {
             console.log("Error in postPrizes frontend.")
@@ -253,17 +265,17 @@ export default function Configuracion () {
     function postPrizes () {
         try {
 
-            if (prize.name.length > 100 || prize.round > 5 || prize.round < 1) {
+            if (prize.name.length > 100 || prize.round > 5 || prize.round < 1 || prize.roulette_number > 10 || prize.roulette_number < 1) {
                 setErrorPrize("Campos invalido")
                 return
             }
 
-            if (!prize.name || !prize.type || !prize.value || !prize.round) {
+            if (!prize.name || !prize.type || !prize.value || !prize.round || !prize.roulette_number) {
                 setErrorPrize("Campos faltantes")
                 return
             }
 
-            setGame(prev => ({...prev, prize_list: [...prev.prize_list, {id: temporalPrizeId++, name: prize.name, type: prize.type, value: prize.value, round: prize.round}]}))
+            setGame(prev => ({...prev, prize_list: [...prev.prize_list, {id: temporalPrizeId++, name: prize.name, type: prize.type, value: prize.value, round: prize.round, roulette_number: prize.roulette_number}]}))
 
         } catch (error) {
             console.log("Error in postPrizes: ", error)
@@ -380,8 +392,12 @@ export default function Configuracion () {
                         <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-[49%]'>
-                        ronda:
+                        Ronda:
                         <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                    </label>
+                    <label className='flex flex-col font-semibold w-[49%]'>
+                        Numero en ruleta:
+                        <input value={prize.roulette_number ?? ''} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
                     <div className='flex items-end text-white font-semibold'>
@@ -397,6 +413,7 @@ export default function Configuracion () {
                                 <th>Tipo</th>
                                 <th>Valor$</th>
                                 <th>Ronda</th>
+                                <th>Numero en ruleta</th>
                                 <th>Accion</th>
                             </tr>
                         </thead>
@@ -407,6 +424,7 @@ export default function Configuracion () {
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
                                     <td>{obj.round}</td>
+                                    <td>{obj.roulette_number}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => setGame(prev => ({...prev, prize_list: prev.prize_list.filter(prize => prize.id !== obj.id)}))}
                                             className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
@@ -489,6 +507,10 @@ export default function Configuracion () {
                         Ronda:
                         <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
+                    <label className='flex flex-col font-semibold w-[49%]'>
+                        Numero en ruleta:
+                        <input value={prize.roulette_number} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                    </label>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
                     <div className='flex items-end text-white font-semibold'>
                         <button onClick={() => postPrize()}
@@ -503,6 +525,7 @@ export default function Configuracion () {
                                 <th>Tipo</th>
                                 <th>Valor$</th>
                                 <th>Ronda</th>
+                                <th>Numero en ruleta</th>
                                 <th>Accion</th>
                             </tr>
                         </thead>
@@ -513,6 +536,7 @@ export default function Configuracion () {
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
                                     <td>{obj.round}</td>
+                                    <td>{obj.roulette_number}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => deletePrize(obj?.id, gameId)}
                                             className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
@@ -567,6 +591,7 @@ export default function Configuracion () {
                                     type: "Dinero en efectivo",
                                     value: 0,
                                     round: 1,
+                                    roulette_number: 0,
                                 })
                             }}
                             className='flex items-center px-3 py-2 text-md font-semibold rounded-lg cursor-pointer active:scale-95 bg-red-700 gap-1'>
@@ -599,6 +624,7 @@ export default function Configuracion () {
                                             type: "Dinero en efectivo",
                                             value: 0,
                                             round: 1,
+                                            roulette_number: 0,
                                         })
                                         refModalEdit.current.showModal()
                                         refModalEdit.current.style.display = 'flex'
