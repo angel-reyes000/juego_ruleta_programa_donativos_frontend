@@ -43,6 +43,13 @@ interface GameData {
     created_at: string
 }
 
+interface RoundsData {
+    id: number
+    game_id: number
+    number: number
+    spins: number
+}
+
 interface RoundData {
     id?: number
     game_id: number
@@ -60,6 +67,7 @@ interface TicketData {
 
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
+    const [rounds, setRounds] = useState<RoundsData[]>();
     const [currentRoundData, setCurrentRoundData] = useState<RoundData>({
         game_id: 0,
         number: 1,
@@ -73,9 +81,7 @@ export default function Ruleta () {
     const [role, setRole] = useState<string>();
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
-    // const [winningNumber, setWinningNumber] = useState<number>();
 
-    // const refWinningNumber = useRef<number | null | undefined>(null);
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
     const refModal = useRef<HTMLDialogElement>(null);
@@ -101,6 +107,11 @@ export default function Ruleta () {
             )
         })
 
+        socket.on("updateRoundSpins", (number, spins, total_current_spins) => {
+            console.log("DATA REAL ROUND: ", number, spins, total_current_spins)
+            setCurrentRoundData((prev: any) => ({...prev, spins: spins, number: number, total_current_spins: total_current_spins}));            
+        })
+
         async function getCurrentGame () {
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getCurrentGame`, {
@@ -120,8 +131,9 @@ export default function Ruleta () {
 
                 console.log(dataGame);
                 setCurrentGameData(dataGame);
-                getCurrentRoundGame(dataGame.id, false);
+                getCurrentRoundGame(dataGame.id, false, false);
                 getTickets(dataGame.id);
+                getRounds(dataGame.id);
 
             } catch (error) {
                 refModal.current?.showModal();
@@ -160,6 +172,35 @@ export default function Ruleta () {
         }
 
     }, [])
+
+    async function getRounds (game_id: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getRounds?game_id=${game_id}`, {
+                method: 'GET',
+                headers: {
+                    'authorization': `Bearer ${token}`,
+                    'content-type': 'application/json',
+                }
+            })
+
+            if (response.status != 200) {
+                console.log("Error al obtener rondas.")
+                return
+            }
+
+            const data = await response.json();
+            console.log("rounds: ", data)
+
+            setRounds(data);
+
+        } catch (error) {
+            console.log("Error in getRounds: ", error)
+        }
+    }
 
     async function getTickets (game_id: number) {
 
@@ -250,12 +291,12 @@ export default function Ruleta () {
 
             console.log("DATOS DE GIRO: ", dataSpin)
 
-            const winning_number = await dataSpin.winning_number
+            //const winning_number = await dataSpin.winning_number
 
             deleteTicket(currentGameData?.id, dataSpin.winning_number)
             //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
 
-            socket.emit("spin", winning_number);
+            socket.emit("spin", dataSpin.winning_number, total_current_spins);
 
         } catch (error) {
             setShowMessageFloating(true);
@@ -266,7 +307,7 @@ export default function Ruleta () {
         }
     }
 
-    async function getCurrentRoundGame (game_id: number, makePostSpin: boolean) {
+    async function getCurrentRoundGame (game_id: number, makePostSpin: boolean, updateRoundSpins: boolean) {
 
         const token = localStorage.getItem('token');
 
@@ -288,11 +329,16 @@ export default function Ruleta () {
             const dataRound = await response.json();
 
             console.log(dataRound)
-            setCurrentRoundData((prev: any) => ({...prev, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
+
+            setCurrentRoundData((prev: any) => ({...prev, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));            
+
+            if (updateRoundSpins) {
+                socket.emit("updateRoundSpins", dataRound.number, dataRound.spins, dataRound.total_current_spins)
+            }
 
             if(makePostSpin) {
                 await postSpin(dataRound.id, dataRound.total_current_spins);
-                await getCurrentRoundGame(game_id, false);
+                await getCurrentRoundGame(game_id, false, true);
             }
 
         } catch (error) {
@@ -336,7 +382,7 @@ export default function Ruleta () {
                     <div className='flex flex-col justify-center items-center gap-5'>
                         <div className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px]' ref={refDivRoulette} />
                         {role === 'admin' ? (
-                            <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true)} 
+                            <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true, false)} 
                                 className={'w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
                                     Girar
                             </button>  
@@ -349,26 +395,19 @@ export default function Ruleta () {
                         <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-semibold text-xl">Progreso del sorteo</h1>
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Ronda 1</p>
-                                    <p className="flex items-center gap-2">5000 <FaArrowAltCircleRight /> 2500</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Ronda 2</p>
-                                    <p className="flex items-center gap-2">2500 <FaArrowAltCircleRight /> 1000</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Ronda 3</p>
-                                    <p className="flex items-center gap-2">1000 <FaArrowAltCircleRight /> 100</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Ronda 4</p>
-                                    <p className="flex items-center gap-2">100 <FaArrowAltCircleRight /> 10</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Ronda 5</p>
-                                    <p className="flex items-center gap-2">10 <FaArrowAltCircleRight /> 10</p>
-                                </div> 
+                                {rounds?.map((round: RoundsData) => (
+                                    <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-1 gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
+                                        <div className='flex items-center font-semibold gap-1'>
+                                            <p className='px-4 py-1 rounded-4xl bg-yellow-500 text-2xl text-center'>{round.number}</p>
+                                            <p>Ronda</p>
+                                        </div>
+                                        {round.number === 1 ? <p className='flex items-center gap-2'>5000<FaArrowAltCircleRight />2500</p> : null}
+                                        {round.number === 2 ? <p className='flex items-center gap-2'>2500<FaArrowAltCircleRight />1000</p> : null}
+                                        {round.number === 3 ? <p className='flex items-center gap-2'>1000<FaArrowAltCircleRight />100</p> : null}
+                                        {round.number === 4 ? <p className='flex items-center gap-2'>100<FaArrowAltCircleRight />10</p> : null}
+                                        {round.number === 5 ? <p className='flex items-center gap-2'>10<FaArrowAltCircleRight />10</p> : null}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
