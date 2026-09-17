@@ -339,7 +339,7 @@ export default function Configuracion () {
                 </div>
             </dialog>
             {/*-----------------------------------------MODAL TO ADD GAMES---------------------------------------------------*/}
-            <dialog ref={refModalAdd} className='flex flex-col m-auto w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
+            <dialog ref={refModalAdd} className='flex flex-col m-auto w-[90%] md:w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
                 <div className='flex justify-between items-center font-bold text-2xl'>
                     <h1>Crear nuevo juego</h1>
                     <button onClick={() => {
@@ -350,23 +350,23 @@ export default function Configuracion () {
                     </button>
                 </div>
                 <div className='flex flex-wrap justify-between gap-2'>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Titulo:
                         <input value={game.title ?? ""} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de inicio:
                         <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de finalizaicion:
                         <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Capacidad:
                         <input value={game.max_capacity ?? ""} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         descripcion:
                         <input value={game.description ?? ""} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
@@ -374,11 +374,11 @@ export default function Configuracion () {
                 <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                 <h1 className='font-bold text-2xl'>Premios</h1>
                 <div className='flex flex-wrap justify-between gap-2'>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Nombre:
                         <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Tipo:
                         <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'>
                             <option>Dinero en efectivo</option>
@@ -387,15 +387,15 @@ export default function Configuracion () {
                             <option>Vale / Tarjeta de regalo</option>
                         </select>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Valor$:
                         <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Ronda:
                         <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Numero en ruleta:
                         <input value={prize.roulette_number ?? ''} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
@@ -435,23 +435,23 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
-                    <div className='flex justify-between w-full'>
+                    <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => postGame()}
-                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-[20%] font-semibold gap-1 hover:bg-blue-800'>
+                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
                             <FaSave />Crear juego
                         </button>
                         <button onClick={() => {
                             refModalAdd.current.style.display = 'none';
                             refModalAdd.current.close()
                         }}
-                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-[20%] font-semibold hover:bg-gray-300'>
+                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold hover:bg-gray-300'>
                             Cancelar
                         </button>
                     </div>
                 </div>
             </dialog>
             {/*-----------------------------------------MODAL TO EDIT GAMES---------------------------------------------------*/}
-            <dialog ref={refModalEdit} className='flex flex-col m-auto w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
+            <dialog ref={refModalEdit} className='flex flex-col m-auto w-[90%] md:w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
                 <div className='flex justify-between items-center font-bold text-2xl'>
                     <h1>Editar juego</h1>
                     <button onClick={() => {
@@ -462,23 +462,23 @@ export default function Configuracion () {
                     </button>
                 </div>
                 <div className='flex flex-wrap justify-between gap-2'>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Titulo:
                         <input value={game.title} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de inicio:
                         <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de finalizaicion:
                         <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Capacidad:
                         <input value={game.max_capacity} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         descripcion:
                         <input value={game.description} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
@@ -486,11 +486,11 @@ export default function Configuracion () {
                 <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                 <h1 className='font-bold text-2xl'>Premios</h1>
                 <div className='flex flex-wrap justify-between gap-2'>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Nombre:
                         <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Tipo:
                         <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'>
                             <option>Dinero en efectivo</option>
@@ -499,15 +499,15 @@ export default function Configuracion () {
                             <option>Vale / Tarjeta de regalo</option>
                         </select>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Valor$:
                         <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Ronda:
                         <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
-                    <label className='flex flex-col font-semibold w-[49%]'>
+                    <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Numero en ruleta:
                         <input value={prize.roulette_number} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
@@ -547,16 +547,16 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
-                    <div className='flex justify-between w-full'>
+                    <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => updateGame()}
-                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-[20%] font-semibold gap-1 hover:bg-blue-800'>
+                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
                             <FaSave />Guardar
                         </button>
                         <button onClick={() => {
                                 refModalEdit.current.style.display = 'none';
                                 refModalEdit.current.close()
                             }}
-                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-[20%] font-semibold hover:bg-gray-300'>
+                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold hover:bg-gray-300'>
                             Cancelar
                         </button>
                     </div>
@@ -568,9 +568,9 @@ export default function Configuracion () {
                     <p onClick={() => router.back()} className='cursor-pointer hover:text-blue-400 hover:underline'>{'< Regresar'}</p>
                     <h1 className='text-4xl'>Menu de configuracion</h1>
                 </div>
-                <div className='flex flex-col gap-3'>
-                    <div className='flex justify-between text-white w-full'>
-                        <div className='flex items-center px-2 border-2 border-gray-400 rounded-lg gap-2'>
+                <div className='flex flex-col gap-3 overflow-auto'>
+                    <div className='flex flex-col sm:flex-row justify-between text-white w-full gap-2'>
+                        <div className='flex items-center p-2 border-2 border-gray-400 rounded-lg gap-2'>
                             <FaSearch />
                             <input value={inputSearch} onChange={((e) => setInputSearch(e.target.value))} className='focus:outline-none'></input>
                         </div>
@@ -594,7 +594,7 @@ export default function Configuracion () {
                                     roulette_number: 0,
                                 })
                             }}
-                            className='flex items-center px-3 py-2 text-md font-semibold rounded-lg cursor-pointer active:scale-95 bg-red-700 gap-1'>
+                            className='flex items-center justify-center px-3 py-2 text-md font-semibold rounded-lg cursor-pointer active:scale-95 bg-red-700 gap-1'>
                             <FaPlus />Crear nuevo juego
                         </button>
                     </div>
