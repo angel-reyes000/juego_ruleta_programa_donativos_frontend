@@ -28,6 +28,14 @@ interface Game {
 
 let temporalPrizeId = 1;
 
+function formatDateTimeLocal (value: string) {
+    const date = new Date(value);
+
+    const pad = (number: number) => String(number).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function Configuracion () {
     const [gameList, setGameList] = useState<Game[]>();
     const [prizeList, setPrizeList] = useState<Prize[]>();
@@ -80,6 +88,7 @@ export default function Configuracion () {
                 }
 
                 const data = await response.json();
+                console.log(data)
 
                 setGameList(data)
 
@@ -617,7 +626,11 @@ export default function Configuracion () {
                             )).map((obj: Game) => (
                                 <tr key={obj.id} onClick={() => {
                                         setGameId(obj.id!);
-                                        setGame(obj)
+                                        setGame({
+                                            ...obj,
+                                            start_datetime: formatDateTimeLocal(obj.start_datetime),
+                                            end_datetime: formatDateTimeLocal(obj.end_datetime),
+                                        })
                                         getPrizes(obj.id!);
                                         setPrize({
                                             name: "",
