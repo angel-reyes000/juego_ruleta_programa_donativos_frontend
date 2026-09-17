@@ -21,11 +21,6 @@ const paths = [
     },
     {
         id: 3,
-        path: '/comoFunciona',
-        name: 'Como funciona',
-    },
-    {
-        id: 4,
         path: '/acercaDe',
         name: 'Acerca de',
     },
@@ -112,13 +107,13 @@ export default function NavBar () {
             </div>
             {/*-----------------------MENU FLOTANTE ORIGINAL---------------------------*/}
             <header className={'flex sm:flex-row absolute fixed w-full bg-linear-to-b from-[rgba(100,0,0)] to-[rgba(30,0,0)] justify-between items-center py-5 sm:py-3 px-6 z-10 gap-5 sm:gap-0' + (openMenu ? ' flex-col items-start ' : '')}>
-                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden md:block cursor-pointer' alt='logo de la pagina' />
+                <Image onClick={() => router.push('/')} src={logo} height={50} width={50} className='text-white hidden sm:block cursor-pointer' alt='logo de la pagina' />
                 {openMenu ? (
                     <FaPlus onClick={() => setOpenMenu(!openMenu)} size={30} className='text-white sm:hidden rotate-45' />
                 ):(
                     <FaBars onClick={() => setOpenMenu(!openMenu)} size={45} className='text-white sm:hidden' />
                 )}
-                <nav className={'flex sm:flex-row sm:gap-0 justify-end w-full' + (openMenu ? ' flex-col gap-3 ' : '')}>
+                <nav className={'flex sm:flex-row sm:gap-2 justify-end w-full' + (openMenu ? ' flex-col gap-3 ' : '')}>
                     {paths.map(path => (
                         <Link key={path.id} href={path.path} className={'content-center text-center py-3 px-8 sm:block text-md rounded-4xl font-semibold hover:text-black hover:bg-[rgb(255,255,255,0.8)]' + (pathName === path.path ? ' text-black bg-[rgb(255,255,255,0.8)] ' : ' text-white ') + (openMenu ? ' block text-center ' : 'hidden')}>{path.name}</Link>
                     ))}

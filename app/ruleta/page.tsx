@@ -11,7 +11,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MessageFloating from '@/components/messageFloating';
 import { messageFloating, messageType } from '@/components/messageFloating';
-import { error } from 'console';
+import 'aos/dist/aos.css';
+import AOS from 'aos';
 
 const socket = io(`${process.env.NEXT_PUBLIC_BACKEND_API}`);
 
@@ -102,6 +103,7 @@ export default function Ruleta () {
     });
     const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
+    const [currentUsersWithDonation, setCurrentUsersWithDonation] = useState<number>();
     const [winningNumber, setWinningNumber] = useState<number>();
     const [rouletteData, setRouletteData] = useState<RouletteData>(initialRouletteData);
     const [role, setRole] = useState<string>();
@@ -289,6 +291,7 @@ export default function Ruleta () {
                 await getCurrentRoundGame(dataGame.id, false, false);
                 getTickets(dataGame.id);
                 getRounds(dataGame.id);
+                getUsersWithDonation(dataGame.id);
 
             } catch (error) {
                 refModal.current?.showModal();
@@ -321,6 +324,12 @@ export default function Ruleta () {
 
         getDataUser();
 
+        AOS.init({
+            duration: 1000, 
+            delay: 0,
+            once: false,
+        })
+
         return () => {
             refRoulette.current?.remove();
             socket.off("spin");
@@ -330,6 +339,34 @@ export default function Ruleta () {
         }
 
     }, []);
+
+    async function getUsersWithDonation (game_id: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getUsersWithDonation?game_id=${game_id}`, {
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json',
+                },
+            })
+
+            if (response.status != 200) {
+                console.log("Error al obtener donantes participantes.");
+            }
+
+            const data = await response.json();
+            //console.log("JUGADORES ACTUALES: ", data);
+
+            setCurrentUsersWithDonation(data);
+
+        } catch (error) {
+            console.log("Error in getUsersWithDonation frontend: ", error)
+        }
+    }
 
     async function getRounds (game_id: number) {
 
@@ -588,25 +625,25 @@ export default function Ruleta () {
                     </p>
                 </div>
             </dialog>
-            <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-5">
+            <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-20">
                 {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
                 <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
                     <div className='flex justify-between w-full'>
-                        <h1 className="text-3xl font-bold w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
+                        <h1 data-aos='zoom-in' className="text-4xl font-bold w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
                         <div className='flex flex-col text-end gap-1'>
                             <p className='text-[0.9rem]'>Fecha de finalizacion del juego: <span className='font-semibold'>{`${currentGameData?.end_datetime.split("T")[0]} - ${currentGameData?.end_datetime.split("T")[1].slice(0, 5)}hrs`}</span></p>
                             <p className="flex justify-end items-center font-bold text-2xl gap-1">Tus tickets: {currentTotalTickets}<FaTicketAlt className="inline rotate-125"/></p>
                         </div>                        
                     </div>
                     <div className="flex flex-row justify-around items-center w-full gap-5">
-                        <p>{`Ronda: ${currentRoundData?.number}/5`}</p>
-                        <p>{`Giros ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
-                        <p>Jugadores: 3758 / 5000</p>
+                        <p className='text-lg font-semibold'>{`Ronda: ${currentRoundData?.number}/5`}</p>
+                        <p className='text-lg font-semibold'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
+                        <p className='text-lg font-semibold'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
                     </div>
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <div className='flex flex-col justify-center items-center gap-5'>
-                        <div className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
+                        <div data-aos='zoom-in' className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
                         {role === 'admin' ? (
                             <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true, false)} 
                                 className={'w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
@@ -618,8 +655,8 @@ export default function Ruleta () {
                         ) : null}                                            
                     </div>
                     <div className="flex flex-col justify-center items-center gap-5">
-                        <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
-                            <h1 className="font-semibold text-xl">Progreso del sorteo</h1>
+                        <div data-aos='flip-right' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
+                            <h1 className="font-bold text-xl">Progreso del sorteo</h1>
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
                                 {rounds?.map((round: RoundsData) => (
                                     <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-3 font-semibold gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
@@ -636,8 +673,8 @@ export default function Ruleta () {
                                 ))}
                             </div>
                         </div>
-                        <div className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
-                            <h1 className="font-semibold text-xl">Ultimos resultados</h1>
+                        <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
+                            <h1 className="font-bold text-xl">Ultimos resultados</h1>
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 5</p>
@@ -670,6 +707,36 @@ export default function Ruleta () {
                             </div>                            
                         </div>
                     </div>
+                </div>
+                <div className='flex flex-col text-white gap-10'>
+                    <h2 className='text-4xl font-bold'>¿Como funciona?</h2>
+                    <div data-aos='fade-right' className='grid grid-cols-5'>
+                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                            <h3 className='text-2xl font-semibold'>Ronda 1</h3> 
+                            <p>La ruleta gira 5 veces y los numeros seleccionados pasan a la ronda 2.</p>
+                            <p>(5,000 donadores para 2,500 donadores)</p>
+                        </div> 
+                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                            <h3 className='text-2xl font-semibold'>Ronda 2</h3> 
+                            <p>La ruleta gira 4 veces, los números seleccionados pasan a la Ronda 3.</p>
+                            <p>(2,500 donadores para 1,000 donadores)</p>
+                        </div> 
+                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                            <h3 className='text-2xl font-semibold'>Ronda 3</h3> 
+                            <p>La ruleta gira 1 sola vez, el número ganador pasa a la ronda 4</p>
+                            <p>(1,000 donadores para 100 donadores)</p>
+                        </div> 
+                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                            <h3 className='text-2xl font-semibold'>Ronda 4</h3> 
+                            <p>La ruleta gira 1 solamente una vez, el número ganador pasa a la Ronda 5 y gana premio.</p>
+                            <p>(100 donadores para 10 donadores)</p>
+                        </div> 
+                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                            <h3 className='text-2xl font-semibold'>Ronda 5</h3> 
+                            <p>La ruleta gira 10 veces, otorgando premio en las 10 ocasiones.</p>
+                            <p>(10 donadores para 10 donadores)</p>
+                        </div> 
+                    </div>                    
                 </div>
             </div>
         </>
