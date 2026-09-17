@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MessageFloating from '@/components/messageFloating';
 import { messageFloating, messageType } from '@/components/messageFloating';
+import { error } from 'console';
 
 const socket = io(`${process.env.NEXT_PUBLIC_BACKEND_API}`);
 
@@ -43,6 +44,14 @@ interface GameData {
     created_at: string
 }
 
+interface Prize {
+    name: string
+    type: string
+    value: number
+    round: number
+    roulette_number: number
+}
+
 interface RoundsData {
     id: number
     game_id: number
@@ -65,6 +74,23 @@ interface TicketData {
     donation_id?: number
 }
 
+interface RouletteData {
+    items: Array<{ id: number; label: string }>
+    onRest: (event: any) => void
+    itemLabelFontSizeMax: number
+}
+
+const initialRouletteData: RouletteData = {
+    items: Array.from({ length: 10 }, (_, index) => ({
+        id: index + 1,
+        label: `${index + 1}`,
+    })),
+    onRest: (event: any) => {
+        console.log(event.currentIndex);
+    },
+    itemLabelFontSizeMax: 20,
+};
+
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
     const [rounds, setRounds] = useState<RoundsData[]>();
@@ -77,7 +103,7 @@ export default function Ruleta () {
     const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
     const [winningNumber, setWinningNumber] = useState<number>();
-
+    const [rouletteData, setRouletteData] = useState<RouletteData>(initialRouletteData);
     const [role, setRole] = useState<string>();
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
@@ -85,21 +111,116 @@ export default function Ruleta () {
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
     const refModal = useRef<HTMLDialogElement>(null);
+    // Guarda el game_id vigente para poder re-sincronizar premios al reconectar el socket
+    const refCurrentGameId = useRef<number | undefined>(undefined);
+    // Identifica la carga de premios más reciente para ignorar respuestas atrasadas.
+    const refPrizeRequestId = useRef(0);
+    // true mientras la ruleta está animando un giro
+    const refIsSpinning = useRef<boolean>(false);
+    // Siempre apunta a los premios más recientes conocidos.
+    const refCurrentRouletteData = useRef<RouletteData>(initialRouletteData);
 
     const router = useRouter();
+
+    function createRoulette (dataRoulette: RouletteData | undefined) {
+        if (!refDivRoulette.current || !dataRoulette?.items?.length) {
+            return;
+        }
+
+        const originalOnRest = dataRoulette.onRest;
+
+        // Envolvemos onRest para saber cuándo termina realmente la animación:
+        // ahí liberamos el flag de "girando" y resincronizamos con los premios
+        // más recientes conocidos (por si la ronda cambió mientras se giraba,
+        // incluso si ese cambio llegó a pisar la ruleta antes de que empezara
+        // a girar visualmente).
+        const dataRouletteWithRestHook: RouletteData = {
+            ...dataRoulette,
+            onRest: (event: any) => {
+                refIsSpinning.current = false;
+                originalOnRest?.(event);
+            },
+        };
+
+        refRoulette.current?.remove();
+        refRoulette.current = new Wheel(refDivRoulette.current, dataRouletteWithRestHook);
+    }
+
+    useEffect(() => {
+        refCurrentRouletteData.current = rouletteData;
+
+        if (refIsSpinning.current) {
+            // Cambiar los segmentos conserva la rotación actual y no reinicia el giro.
+            if (refRoulette.current) {
+                refRoulette.current.items = rouletteData.items;
+            }
+            return;
+        }
+
+        createRoulette(rouletteData);
+    }, [rouletteData]);
+
+    async function loadRoundPrizes (gameId: number, roundNumber: number) {
+        const requestId = ++refPrizeRequestId.current;
+        const dataRoulette = await getPrizes(gameId, roundNumber);
+
+        if (requestId !== refPrizeRequestId.current || !dataRoulette) {
+            return;
+        }
+
+        refCurrentRouletteData.current = dataRoulette;
+
+        if (refIsSpinning.current) {
+            if (refRoulette.current) {
+                refRoulette.current.items = dataRoulette.items;
+            }
+        } else {
+            setRouletteData(dataRoulette);
+        }
+    }
+
+    // Respaldo: si la ronda cambia en vivo (p.ej. por el evento "updateRoundSpins"),
+    // vuelve a traer los premios de la nueva ronda.
+    useEffect(() => {
+        if (!currentRoundData.game_id || !currentRoundData.number) {
+            return;
+        }
+
+        async function loadCurrentRoundPrizes () {
+            await loadRoundPrizes(currentRoundData.game_id, currentRoundData.number);
+        }
+
+        loadCurrentRoundPrizes();
+    }, [currentRoundData.game_id, currentRoundData.number]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
 
-        const roulette = new Wheel(refDivRoulette.current, segments);
-                
-        refRoulette.current = roulette;
-
-        socket.on("spin", (winning_number) => {
+        socket.on("spin", (winning_number, dataRoulette) => {
             console.log("Evento spin creado");
             console.log("GIRANDO A TODOS")
+
+            if (refRoulette.current) {
+                refRoulette.current.items = dataRoulette.items;
+            } else {
+                createRoulette(dataRoulette);
+            }
+
+            const winningItemIndex = dataRoulette.items.findIndex(
+                (item: { id: number }) => Number(item.id) === Number(winning_number)
+            );
+
+            if (winningItemIndex < 0) {
+                console.error("El número ganador no existe en los segmentos de la ruleta", {
+                    winning_number,
+                    items: dataRoulette.items,
+                });
+                return;
+            }
+
+            refIsSpinning.current = true;
             refRoulette.current?.spinToItem(
-                winning_number - 1, // numero ganador 
+                winningItemIndex,
                 10000, // tiempo girando
                 false, // cae en numero ganador pero si en el centro o no
                 20, // numero de vueltas
@@ -107,10 +228,39 @@ export default function Ruleta () {
             )
         })
 
-        socket.on("updateRoundSpins", (number, spins, total_current_spins) => {
+        socket.on("prizesUpdated", (dataRoulette) => {
+            setRouletteData(dataRoulette);
+        });
+
+        socket.on("updateRoundSpins", (number, spins, total_current_spins, dataRoulette) => {
             console.log("DATA REAL ROUND: ", number, spins, total_current_spins)
             setCurrentRoundData((prev: any) => ({...prev, spins: spins, number: number, total_current_spins: total_current_spins}));            
+
+            if (dataRoulette) {
+                refCurrentRouletteData.current = dataRoulette;
+
+                if (refRoulette.current) {
+                    refRoulette.current.items = dataRoulette.items;
+                } else {
+                    setRouletteData(dataRoulette);
+                }
+            } else if (refCurrentGameId.current) {
+                loadRoundPrizes(refCurrentGameId.current, Number(number));
+            }
         })
+
+        // Si el socket se reconecta (red inestable, cambio de pestaña en móvil, etc.),
+        // se vuelve a pedir la ronda y los premios actuales para que este dispositivo
+        // quede sincronizado sin necesidad de esperar a que alguien gire la ruleta.
+        socket.on("connect", () => {
+            if (refCurrentGameId.current) {
+                getCurrentRoundGame(refCurrentGameId.current, false, false);
+                // Pide los premios actuales por socket (no depende del fetch REST
+                // individual de este dispositivo ni de que alguien presione "Girar").
+                // Requiere un handler "getCurrentPrizes" en el backend que responda con "prizesUpdated".
+                socket.emit("getCurrentPrizes", refCurrentGameId.current);
+            }
+        });
 
         async function getCurrentGame () {
             try {
@@ -131,7 +281,12 @@ export default function Ruleta () {
 
                 console.log(dataGame);
                 setCurrentGameData(dataGame);
-                getCurrentRoundGame(dataGame.id, false, false);
+                refCurrentGameId.current = dataGame.id;
+                // Pide los premios actuales por socket apenas se carga la página,
+                // sin depender del fetch REST individual ni del botón "Girar".
+                // Requiere un handler "getCurrentPrizes" en el backend que responda con "prizesUpdated".
+                socket.emit("getCurrentPrizes", dataGame.id);
+                await getCurrentRoundGame(dataGame.id, false, false);
                 getTickets(dataGame.id);
                 getRounds(dataGame.id);
 
@@ -167,11 +322,14 @@ export default function Ruleta () {
         getDataUser();
 
         return () => {
-            roulette.remove();
+            refRoulette.current?.remove();
             socket.off("spin");
+            socket.off("prizesUpdated");
+            socket.off("updateRoundSpins");
+            socket.off("connect");
         }
 
-    }, [])
+    }, []);
 
     async function getRounds (game_id: number) {
 
@@ -264,7 +422,7 @@ export default function Ruleta () {
         }
     }
 
-    async function postSpin (round_id: number, total_current_spins: number) {
+    async function postSpin (dataRound: RoundData) {
 
         const token = localStorage.getItem('token');
 
@@ -276,8 +434,8 @@ export default function Ruleta () {
                     'content-type': 'application/json',
                 },
                 body: JSON.stringify({
-                    round_id: round_id,
-                    total_current_spins: total_current_spins,
+                    round_id: dataRound.id,
+                    total_current_spins: dataRound.total_current_spins,
                 })
             })
 
@@ -296,7 +454,9 @@ export default function Ruleta () {
             deleteTicket(currentGameData?.id, dataSpin.winning_number)
             //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
 
-            socket.emit("spin", dataSpin.winning_number, total_current_spins);
+            const dataRoulette = await getPrizes(currentGameData!.id, dataRound.number);
+
+            socket.emit("spin", dataSpin.winning_number, dataRoulette);
 
         } catch (error) {
             setShowMessageFloating(true);
@@ -330,19 +490,85 @@ export default function Ruleta () {
 
             console.log(dataRound)
 
-            setCurrentRoundData((prev: any) => ({...prev, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));            
+            setCurrentRoundData((prev: any) => ({...prev, game_id: game_id, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
 
             if (updateRoundSpins) {
-                socket.emit("updateRoundSpins", dataRound.number, dataRound.spins, dataRound.total_current_spins)
+                const dataRoulette = await getPrizes(game_id, dataRound.number);
+                socket.emit(
+                    "updateRoundSpins",
+                    dataRound.number,
+                    dataRound.spins,
+                    dataRound.total_current_spins,
+                    dataRoulette
+                )
             }
 
             if(makePostSpin) {
-                await postSpin(dataRound.id, dataRound.total_current_spins);
+                await postSpin(dataRound);
                 await getCurrentRoundGame(game_id, false, true);
             }
 
         } catch (error) {
             console.log("Error in getCurrentRoundGame frontend: ", error)
+        }
+    }
+
+    async function getPrizes (game_id: number, currentRound?: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getPrizes?gameId=${game_id}`, {
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json',
+                },
+            })
+
+            if (response.status !== 200) {
+                console.log("Error in response roulette/getPrizes");
+                return
+            }
+
+            const responseData = await response.json();
+            const dataPrizes: Prize[] = Array.isArray(responseData)
+                ? responseData
+                : Array.isArray(responseData?.prizes)
+                    ? responseData.prizes
+                    : [];
+            console.log("PREMIOS: ", dataPrizes)
+
+            const roundPrizes = currentRound === undefined
+                ? dataPrizes
+                : dataPrizes.filter((obj: Prize) => Number(obj.round) === Number(currentRound));
+
+            const prizes = Array.from({ length: 10 }, (_, index) => {
+                const rouletteNumber = index + 1;
+                const prize = roundPrizes.find(
+                    (obj: Prize) => Number(obj.roulette_number) === rouletteNumber
+                );
+
+                return {
+                    id: rouletteNumber,
+                    label: prize
+                        ? `${rouletteNumber}. ${prize.name}`
+                        : `${rouletteNumber}`,
+                };
+            });
+
+            const dataRoulette = {
+                "items": prizes, 
+                onRest: (event: any) => {
+                    console.log(event.currentIndex)
+                },
+                itemLabelFontSizeMax: 20,
+            }
+
+            return dataRoulette
+
+        } catch (error) {
+            console.log("Error in ruleta/getPrizes: ", error);
         }
     }
 
@@ -380,7 +606,7 @@ export default function Ruleta () {
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <div className='flex flex-col justify-center items-center gap-5'>
-                        <div className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px]' ref={refDivRoulette} />
+                        <div className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
                         {role === 'admin' ? (
                             <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true, false)} 
                                 className={'w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
@@ -396,8 +622,8 @@ export default function Ruleta () {
                             <h1 className="font-semibold text-xl">Progreso del sorteo</h1>
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
                                 {rounds?.map((round: RoundsData) => (
-                                    <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-1 gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
-                                        <div className='flex items-center font-semibold gap-1'>
+                                    <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-3 font-semibold gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
+                                        <div className='flex items-center gap-1'>
                                             <p className='px-4 py-1 rounded-4xl bg-yellow-500 text-2xl text-center'>{round.number}</p>
                                             <p>Ronda</p>
                                         </div>
