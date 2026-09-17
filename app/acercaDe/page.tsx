@@ -2,7 +2,7 @@
 
 import NavBar from "@/components/navbar";
 import { useEffect, useState } from "react";
-import { FaUser, FaEdit, FaLock } from "react-icons/fa";
+import { FaUser, FaEdit, FaLock, FaRegEnvelope } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { MdApps } from 'react-icons/md';
 
@@ -49,7 +49,21 @@ export default function MiCuenta () {
     return (
         <>
             <NavBar />
-            <main className="flex flex-wrap flex-col md:flex-row h-dvh w-full content-start px-5 py-10 gap-2 bg-[rgb(30,0,0)]">
+            <main className="flex flex-wrap flex-col md:flex-row h-auto min-h-dvh w-full content-start px-5 py-10 gap-2 bg-[rgb(30,0,0)]">
+                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
+                    <div className="flex items-center w-full text-lg font-bold gap-2">
+                      <FaRegEnvelope size={20} />  
+                      <p>Contactanos</p>
+                    </div>
+                    <div className="w-full sm:w-[45%]">
+                        <p className="font-semibold text-sm">Numero celular:</p>
+                        <p>00 000 000 000</p>
+                    </div>
+                    <div className="w-full sm:w-[45%]">
+                        <p className="font-semibold text-sm">Correo Electronico:</p>
+                        <a className="hover:underline hover:text-blue-500" href="mailto:ejemplo@gmail.com">ejemplo@ejem.com</a>
+                    </div>
+                </div>
                 <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
                     <div className="flex items-center w-full text-lg font-bold gap-2">
                       <FaUser />  
