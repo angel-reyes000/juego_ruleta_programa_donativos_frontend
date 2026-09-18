@@ -101,6 +101,7 @@ export default function Ruleta () {
         spins: 0,
         total_current_spins: 0,
     });
+    const [stateWinningTickets, setStateWinningTickets] = useState();
     const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
     const [currentUsersWithDonation, setCurrentUsersWithDonation] = useState<number>();
@@ -164,7 +165,7 @@ export default function Ruleta () {
 
     async function loadRoundPrizes (gameId: number, roundNumber: number) {
         const requestId = ++refPrizeRequestId.current;
-        const dataRoulette = await getPrizes(gameId, roundNumber);
+        const {dataRoulette, dataPrize} = await getPrizes(gameId, roundNumber);
 
         if (requestId !== refPrizeRequestId.current || !dataRoulette) {
             return;
@@ -292,6 +293,7 @@ export default function Ruleta () {
                 getTickets(dataGame.id);
                 getRounds(dataGame.id);
                 getUsersWithDonation(dataGame.id);
+                getWinningTickets(dataGame.id);
 
             } catch (error) {
                 refModal.current?.showModal();
@@ -339,6 +341,67 @@ export default function Ruleta () {
         }
 
     }, []);
+
+    async function getWinningTickets (game_id: number) {
+        try {
+
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getWinningTickets?game_id=${game_id}`, {
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json',
+                },
+            })
+
+            const data = await response.json();
+
+            if (response.status != 200) {
+                console.log("Error in getWinningTickets frontend.")
+                return;
+            }
+
+            console.log("WINNING TICKETSSSSS: ", data);
+            setStateWinningTickets(data);
+
+        } catch (error) {
+            console.log("Error in getWinningTickets: ", error)
+        }
+    }
+
+    async function postWinningTickets (winning_number: number, game_id: number, dataRound: RoundData, dataSpin: any, dataPrizes: any) {
+        try {
+
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/postWinningTickets`, {
+                method: 'POST',
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    winning_number: winning_number,
+                    game_id: game_id, 
+                    dataRound: dataRound, 
+                    dataSpin: dataSpin, 
+                    dataPrizes: dataPrizes,
+                })
+            })
+
+            const data = await response.json();
+
+            if (response.status != 200) {
+                console.log("Error in postWinningTickets fontend: ", data);
+            }
+
+            console.log(data)
+
+        } catch (error) {
+            console.log("Error in postWinningTickets: ", error);
+        }
+    }
 
     async function getUsersWithDonation (game_id: number) {
 
@@ -491,7 +554,9 @@ export default function Ruleta () {
             deleteTicket(currentGameData?.id, dataSpin.winning_number)
             //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
 
-            const dataRoulette = await getPrizes(currentGameData!.id, dataRound.number);
+            const {dataRoulette, dataPrizes} = await getPrizes(currentGameData!.id, dataRound.number);
+
+            postWinningTickets(dataSpin.winning_number, currentGameData!.id, dataRound, dataSpin, dataPrizes)
 
             socket.emit("spin", dataSpin.winning_number, dataRoulette);
 
@@ -530,7 +595,7 @@ export default function Ruleta () {
             setCurrentRoundData((prev: any) => ({...prev, game_id: game_id, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
 
             if (updateRoundSpins) {
-                const dataRoulette = await getPrizes(game_id, dataRound.number);
+                const { dataRoulette, dataPrizes } = await getPrizes(game_id, dataRound.number);
                 socket.emit(
                     "updateRoundSpins",
                     dataRound.number,
@@ -602,7 +667,7 @@ export default function Ruleta () {
                 itemLabelFontSizeMax: 20,
             }
 
-            return dataRoulette
+            return {dataRoulette, dataPrizes}
 
         } catch (error) {
             console.log("Error in ruleta/getPrizes: ", error);
@@ -675,35 +740,14 @@ export default function Ruleta () {
                         </div>
                         <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-bold text-xl">Ultimos resultados</h1>
-                            <div className="flex flex-col gap-5 overflow-y-scroll px-3">
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 5</p>
-                                    <p className="flex items-center gap-2">Numero 6 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 4</p>
-                                    <p className="flex items-center gap-2">Numero 3 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 3</p>
-                                    <p className="flex items-center gap-2">Numero 1 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 2</p>
-                                    <p className="flex items-center gap-2">Numero 9 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div>
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div> 
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div> 
-                                <div className="flex justify-between text-lg border-b-1 gap-2">
-                                    <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
-                                </div> 
+                            <div className="flex flex-col gap-5 overflow-y-auto px-3">
+                                {stateWinningTickets?.map((obj) => (
+                                   <div key={obj.id} className="flex justify-between text-lg text-center border-b-1 gap-2">
+                                        <p>Ronda {obj.round_number}</p>
+                                        <p>Giro {obj.spin_number}</p>                                        
+                                        <p className="flex items-center gap-2">Numero {obj.winning_number} <FaArrowAltCircleRight />{obj.prize_name ?? "Sin premio."}</p>
+                                    </div> 
+                                ))}
                             </div>                            
                         </div>
                     </div>
