@@ -5,11 +5,11 @@ import MessageFloating from "@/components/messageFloating";
 import { messageFloating } from "@/components/messageFloating";
 import personas_ayudando from '@/public/images/personas_ayudando.jpg';
 import Image from 'next/image';
-import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FaArrowRight, FaArrowLeft, FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import chip from '@/public/images/chip_credit_card.jpg';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import 'aos/dist/aos.css';
 import AOS from 'aos';
 import '@/app/styles.css';
@@ -23,6 +23,7 @@ import {
     useStripe,
 } from "@stripe/react-stripe-js";
 import DonationCelebration from "@/components/donationCelebration";
+import mini_ruleta from '@/public/images/mini_ruleta.png';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -71,6 +72,10 @@ function FormPayment () {
         type: "info",
     });
 
+    const refModal = useRef<HTMLDialogElement>(null);
+
+    const router = useRouter();
+
     useEffect(() => {
 
         AOS.init({
@@ -95,6 +100,7 @@ function FormPayment () {
 
             if (!amount || amount > 10000) {
                 setShowMessage({show: true, messages: ["Para donar cantidades superiores a $10,000 MXN contactenos."], type: "info"});
+                refModal.current?.showModal();
                 return
             }
 
@@ -190,6 +196,22 @@ function FormPayment () {
                 <Image src={personas_ayudando} className="object-cover" alt="personas ayudando" />
             </section>
             <section className="h-full">
+                <dialog ref={refModal} className='backdrop:bg-black/80 bg-[rgba(0,0,0,0)] border-1 border-red-700 m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
+                    <div className='flex flex-col items-center text-white bg-[rgba(50,0,0,0.9)] p-5 gap-5'>
+                        <div className='flex justify-end items-center w-full'>
+                            <FaPlus onClick={() => refModal.current?.close()} className="rotate-45 hover:cursor-pointer" size={20}  />
+                        </div>
+                        <div className='flex justify-center w-full'>
+                            <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                        </div>
+                        <p className='font-semibold text-[1.1rem] m-0 p-0'>
+                            Para donar cantidades superiores a $10,000 MXN contactenos. 
+                        </p>
+                        <button onClick={() => router.push('/acercaDe')} className='p-2 w-[80%] rounded-md bg-gradient-to-r from-red-500 to-yellow-700 cursor-pointer active:scale-95 text-white'>
+                            Contactar ahora.
+                        </button>
+                    </div>
+                </dialog>
                 <form onSubmit={(e) => pay(e)} className="flex flex-col items-center h-full w-full p-10 gap-10 text-white">
                     <div data-aos="zoom-in" className="grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] bg-linear-to-r from-[rgb(90,90,90)] to-[rgb(170,170,170)] w-[80%] sm:w-[60%] md:w-[80%] lg:w-[55%] rounded-xl p-5">
                         <div className="flex justify-between">

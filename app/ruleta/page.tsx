@@ -678,31 +678,31 @@ export default function Ruleta () {
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 5</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 6</p>
+                                    <p className="flex items-center gap-2">Numero 6 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div>
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 4</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 3</p>
+                                    <p className="flex items-center gap-2">Numero 3 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div>
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 3</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 1</p>
+                                    <p className="flex items-center gap-2">Numero 1 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div>
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 2</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 9</p>
+                                    <p className="flex items-center gap-2">Numero 9 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div>
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 7</p>
+                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div> 
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 7</p>
+                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div> 
                                 <div className="flex justify-between text-lg border-b-1 gap-2">
                                     <p>Giro 1</p>
-                                    <p className="flex items-center gap-2">Numero <FaArrowAltCircleRight /> 7</p>
+                                    <p className="flex items-center gap-2">Numero 7 <FaArrowAltCircleRight />NombrePremio</p>
                                 </div> 
                             </div>                            
                         </div>
@@ -710,28 +710,28 @@ export default function Ruleta () {
                 </div>
                 <div className='flex flex-col text-white gap-10'>
                     <h2 className='text-4xl font-bold'>¿Como funciona?</h2>
-                    <div data-aos='fade-right' className='grid grid-cols-5'>
-                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                    <div className='flex flex-col md:flex-row text-center'>
+                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 md:border-b-0 px-6 py-4 md:py-2 gap-2'>
                             <h3 className='text-2xl font-semibold'>Ronda 1</h3> 
                             <p>La ruleta gira 5 veces y los numeros seleccionados pasan a la ronda 2.</p>
                             <p>(5,000 donadores para 2,500 donadores)</p>
                         </div> 
-                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
                             <h3 className='text-2xl font-semibold'>Ronda 2</h3> 
                             <p>La ruleta gira 4 veces, los números seleccionados pasan a la Ronda 3.</p>
                             <p>(2,500 donadores para 1,000 donadores)</p>
                         </div> 
-                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
                             <h3 className='text-2xl font-semibold'>Ronda 3</h3> 
                             <p>La ruleta gira 1 sola vez, el número ganador pasa a la ronda 4</p>
                             <p>(1,000 donadores para 100 donadores)</p>
                         </div> 
-                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
                             <h3 className='text-2xl font-semibold'>Ronda 4</h3> 
                             <p>La ruleta gira 1 solamente una vez, el número ganador pasa a la Ronda 5 y gana premio.</p>
                             <p>(100 donadores para 10 donadores)</p>
                         </div> 
-                        <div className='flex flex-col border-r-3 px-6 py-2 gap-2'>
+                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
                             <h3 className='text-2xl font-semibold'>Ronda 5</h3> 
                             <p>La ruleta gira 10 veces, otorgando premio en las 10 ocasiones.</p>
                             <p>(10 donadores para 10 donadores)</p>
