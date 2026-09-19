@@ -409,6 +409,7 @@ export default function Configuracion () {
                         <input value={prize.roulette_number ?? ''} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                     <div className='flex items-end text-white font-semibold'>
                         <button onClick={() => postPrizes()}
                             className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
@@ -444,6 +445,8 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                     <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => postGame()}
                             className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
@@ -521,6 +524,7 @@ export default function Configuracion () {
                         <input value={prize.roulette_number} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
                     </label>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                     <div className='flex items-end text-white font-semibold'>
                         <button onClick={() => postPrize()}
                             className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
@@ -556,6 +560,8 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
                     <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => updateGame()}
                             className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
