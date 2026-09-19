@@ -102,6 +102,8 @@ const initialRouletteData: RouletteData = {
     itemLabelFontSizeMax: 20,
 };
 
+let IndexWinningTicket = 0;
+
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
     const [rounds, setRounds] = useState<RoundsData[]>();
@@ -128,6 +130,8 @@ export default function Ruleta () {
     const refCurrentGameId = useRef<number | undefined>(undefined);
     // Identifica la carga de premios más reciente para ignorar respuestas atrasadas.
     const refPrizeRequestId = useRef(0);
+    // Invalida cargas REST que hayan empezado antes de recibir un resultado por socket.
+    const refWinningTicketsVersion = useRef(0);
     // true mientras la ruleta está animando un giro
     const refIsSpinning = useRef<boolean>(false);
     // Siempre apunta a los premios más recientes conocidos.
@@ -269,6 +273,12 @@ export default function Ruleta () {
             }
         })
 
+        socket.on("latestResults", (winningNumber, game_id, round_number, spin_number, prize_name) => {
+            console.log("PRUEBA latestResults: ", winningNumber, game_id, round_number, spin_number, prize_name)
+            refWinningTicketsVersion.current += 1;
+            setStateWinningTickets((prev: WinningTickets[]) => [...prev, ({winning_number: winningNumber, game_id: game_id, round_number: round_number, spin_number: spin_number, prize_name: prize_name ?? "Sin premio"})])
+        })
+
         // Si el socket se reconecta (red inestable, cambio de pestaña en móvil, etc.),
         // se vuelve a pedir la ronda y los premios actuales para que este dispositivo
         // quede sincronizado sin necesidad de esperar a que alguien gire la ruleta.
@@ -354,6 +364,7 @@ export default function Ruleta () {
             socket.off("spin");
             socket.off("prizesUpdated");
             socket.off("updateRoundSpins");
+            socket.off("latestResults");
             socket.off("connect");
         }
 
@@ -361,6 +372,7 @@ export default function Ruleta () {
 
     async function getWinningTickets (game_id: number) {
         try {
+            const requestVersion = refWinningTicketsVersion.current;
 
             const token = localStorage.getItem('token');
 
@@ -380,6 +392,9 @@ export default function Ruleta () {
             }
 
             console.log("WINNING TICKETSSSSS: ", data);
+            if (requestVersion !== refWinningTicketsVersion.current) {
+                return;
+            }
             setStateWinningTickets(data);
 
         } catch (error) {
@@ -392,6 +407,7 @@ export default function Ruleta () {
 
             const token = localStorage.getItem('token');
 
+            console.log("DATAROUNDD WINNINGS: ", dataRound)
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/postWinningTickets`, {
                 method: 'POST',
                 headers: {
@@ -412,8 +428,9 @@ export default function Ruleta () {
             if (response.status != 200) {
                 console.log("Error in postWinningTickets fontend: ", data);
             }
-
-            console.log(data)
+            //console.log("POST WINNING: ", data)
+            socket.emit("latestResults", data.winning_number, data.game_id, data.round_number, data.spin_number, data.prize_name)
+            //console.log("POST WINNING:", data)
 
         } catch (error) {
             console.log("Error in postWinningTickets: ", error);
@@ -579,8 +596,8 @@ export default function Ruleta () {
             }
 
             const { dataRoulette, dataPrizes } = result;
-
-            postWinningTickets(dataSpin.winning_number, currentGameData!.id, dataRound, dataSpin, dataPrizes)
+            console.log("DATATATA round: ", dataRound)
+            await postWinningTickets(dataSpin.winning_number, currentGameData!.id, dataRound, dataSpin, dataPrizes)
 
             socket.emit("spin", dataSpin.winning_number, dataRoulette);
 
@@ -614,7 +631,7 @@ export default function Ruleta () {
 
             const dataRound = await response.json();
 
-            console.log(dataRound)
+            console.log("CURRENT DATAROUND: ", dataRound)
 
             setCurrentRoundData((prev: any) => ({...prev, game_id: game_id, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
 
@@ -773,8 +790,8 @@ export default function Ruleta () {
                         <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-bold text-xl">Ultimos resultados</h1>
                             <div className="flex flex-col gap-5 overflow-y-auto px-3">
-                                {stateWinningTickets?.map((obj: WinningTickets) => (
-                                   <div key={obj.id} className="flex justify-between text-lg text-center border-b-1 gap-2">
+                                {stateWinningTickets?.sort((a, b) => b.spin_number - a.spin_number).sort((a, b) => b.round_number - a.round_number).map((obj: WinningTickets, index: number) => (
+                                   <div key={IndexWinningTicket++} className="flex justify-between text-lg text-center border-b-1 gap-2">
                                         <p>Ronda {obj.round_number}</p>
                                         <p>Giro {obj.spin_number}</p>                                        
                                         <p className="flex items-center gap-2">Numero {obj.winning_number} <FaArrowAltCircleRight />{obj.prize_name ?? "Sin premio."}</p>
