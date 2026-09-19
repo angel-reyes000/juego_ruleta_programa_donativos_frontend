@@ -75,6 +75,16 @@ interface TicketData {
     donation_id?: number
 }
 
+interface WinningTickets {
+    id?: number
+	winning_number: number
+	game_id: number 
+	round_number: number
+	spin_number: number
+	prize_name: number
+	created_at?: string
+}
+
 interface RouletteData {
     items: Array<{ id: number; label: string }>
     onRest: (event: any) => void
@@ -101,7 +111,7 @@ export default function Ruleta () {
         spins: 0,
         total_current_spins: 0,
     });
-    const [stateWinningTickets, setStateWinningTickets] = useState();
+    const [stateWinningTickets, setStateWinningTickets] = useState<WinningTickets[]>([]);
     const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
     const [currentUsersWithDonation, setCurrentUsersWithDonation] = useState<number>();
@@ -165,7 +175,14 @@ export default function Ruleta () {
 
     async function loadRoundPrizes (gameId: number, roundNumber: number) {
         const requestId = ++refPrizeRequestId.current;
-        const {dataRoulette, dataPrize} = await getPrizes(gameId, roundNumber);
+        const result = await getPrizes(gameId, roundNumber);
+
+        if (!result) {
+            console.log("Error al cargar ruleta datos.")
+            return
+        }
+
+        const { dataRoulette, dataPrizes } = result;
 
         if (requestId !== refPrizeRequestId.current || !dataRoulette) {
             return;
@@ -554,7 +571,14 @@ export default function Ruleta () {
             deleteTicket(currentGameData?.id, dataSpin.winning_number)
             //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
 
-            const {dataRoulette, dataPrizes} = await getPrizes(currentGameData!.id, dataRound.number);
+            const result = await getPrizes(currentGameData!.id, dataRound.number);
+
+            if (!result) {
+                console.log("Error al generar ultimo resultado en tiempo real.")
+                return
+            }
+
+            const { dataRoulette, dataPrizes } = result;
 
             postWinningTickets(dataSpin.winning_number, currentGameData!.id, dataRound, dataSpin, dataPrizes)
 
@@ -595,7 +619,15 @@ export default function Ruleta () {
             setCurrentRoundData((prev: any) => ({...prev, game_id: game_id, spins: dataRound.spins, number: dataRound.number, total_current_spins: dataRound.total_current_spins}));
 
             if (updateRoundSpins) {
-                const { dataRoulette, dataPrizes } = await getPrizes(game_id, dataRound.number);
+                const result = await getPrizes(game_id, dataRound.number);
+
+                if (!result) {
+                    console.log("Error al transmitir rondas.")
+                    return
+                }
+
+                const { dataRoulette, dataPrizes } = result
+
                 socket.emit(
                     "updateRoundSpins",
                     dataRound.number,
@@ -659,7 +691,7 @@ export default function Ruleta () {
                 };
             });
 
-            const dataRoulette = {
+            const dataRoulette: RouletteData = {
                 "items": prizes, 
                 onRest: (event: any) => {
                     console.log(event.currentIndex)
@@ -667,7 +699,7 @@ export default function Ruleta () {
                 itemLabelFontSizeMax: 20,
             }
 
-            return {dataRoulette, dataPrizes}
+            return { dataRoulette, dataPrizes }
 
         } catch (error) {
             console.log("Error in ruleta/getPrizes: ", error);
@@ -741,7 +773,7 @@ export default function Ruleta () {
                         <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-bold text-xl">Ultimos resultados</h1>
                             <div className="flex flex-col gap-5 overflow-y-auto px-3">
-                                {stateWinningTickets?.map((obj) => (
+                                {stateWinningTickets?.map((obj: WinningTickets) => (
                                    <div key={obj.id} className="flex justify-between text-lg text-center border-b-1 gap-2">
                                         <p>Ronda {obj.round_number}</p>
                                         <p>Giro {obj.spin_number}</p>                                        
