@@ -70,9 +70,22 @@ interface RoundData {
 
 interface TicketData {
     id?: number
+    status?: 'active' | 'eliminated'
     user_id?: number
     game_id?: number
     donation_id?: number
+}
+
+interface WinnerInfo {
+    user_id: number
+    display_name: string
+}
+
+interface Celebration {
+    number: number
+    prize: string | null
+    winners: WinnerInfo[]
+    iAmWinner: boolean
 }
 
 interface WinningTickets {
@@ -81,7 +94,7 @@ interface WinningTickets {
 	game_id: number 
 	round_number: number
 	spin_number: number
-	prize_name: number
+	prize_name: string | null
 	created_at?: string
 }
 
@@ -114,7 +127,6 @@ export default function Ruleta () {
         total_current_spins: 0,
     });
     const [stateWinningTickets, setStateWinningTickets] = useState<WinningTickets[]>([]);
-    const [currentTickets, setCurrentTickets] = useState<TicketData>();
     const [currentTotalTickets, setCurrentTotalTickets] = useState<number>();
     const [currentUsersWithDonation, setCurrentUsersWithDonation] = useState<number>();
     const [winningNumber, setWinningNumber] = useState<number>();
@@ -123,7 +135,9 @@ export default function Ruleta () {
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
     // Número ganador que se muestra en la animación estilo casino al terminar el giro.
-    const [winnerCelebration, setWinnerCelebration] = useState<{ number: number, prize: string | null } | null>(null);
+    const [winnerCelebration, setWinnerCelebration] = useState<Celebration | null>(null);
+    const [spinBusy, setSpinBusy] = useState<boolean>(false);
+    const [currentTickets, setCurrentTicketsList] = useState<TicketData[]>([]);
 
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
@@ -139,10 +153,15 @@ export default function Ruleta () {
     // Siempre apunta a los premios más recientes conocidos.
     const refCurrentRouletteData = useRef<RouletteData>(initialRouletteData);
     // Ganador del giro en curso; se muestra cuando la ruleta se detiene (onRest).
-    const refPendingWinner = useRef<{ number: number, prize: string | null } | null>(null);
+    const refPendingWinner = useRef<Celebration | null>(null);
+    const refUserId = useRef<number | undefined>(undefined);
     const refCelebrationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const router = useRouter();
+
+    // El juego termina cuando la ronda 5 completa todos sus giros.
+    const finished = currentRoundData.number === 5 && currentRoundData.spins > 0 && currentRoundData.total_current_spins >= currentRoundData.spins;
+    const eliminatedTickets = currentTickets.filter((ticket) => ticket.status === 'eliminated').length;
 
     function createRoulette (dataRoulette: RouletteData | undefined) {
         if (!refDivRoulette.current || !dataRoulette?.items?.length) {
@@ -163,6 +182,10 @@ export default function Ruleta () {
                 originalOnRest?.(event);
 
                 if (refPendingWinner.current) {
+                    // Las eliminaciones de fin de ronda se muestran hasta que la ruleta se detiene.
+                    if (refCurrentGameId.current) {
+                        getTickets(refCurrentGameId.current);
+                    }
                     setWinnerCelebration(refPendingWinner.current);
                     refPendingWinner.current = null;
 
@@ -235,7 +258,7 @@ export default function Ruleta () {
     useEffect(() => {
         const token = localStorage.getItem('token');
 
-        socket.on("spin", (winning_number, dataRoulette) => {
+        socket.on("spin", (winning_number, dataRoulette, winners) => {
             console.log("Evento spin creado");
             console.log("GIRANDO A TODOS")
 
@@ -262,6 +285,8 @@ export default function Ruleta () {
             refPendingWinner.current = {
                 number: Number(winning_number),
                 prize: prizeMatch ? prizeMatch[1] : null,
+                winners: Array.isArray(winners) ? winners : [],
+                iAmWinner: Array.isArray(winners) && winners.some((winner: WinnerInfo) => winner.user_id === refUserId.current),
             };
 
             refIsSpinning.current = true;
@@ -364,6 +389,7 @@ export default function Ruleta () {
                 const data = await response.json();
 
                 const role = data.role;
+                refUserId.current = data.id;
 
                 if (role && role === 'admin') {
                     setRole("admin");
@@ -424,41 +450,6 @@ export default function Ruleta () {
 
         } catch (error) {
             console.log("Error in getWinningTickets: ", error)
-        }
-    }
-
-    async function postWinningTickets (winning_number: number, game_id: number, dataRound: RoundData, dataSpin: any, dataPrizes: any) {
-        try {
-
-            const token = localStorage.getItem('token');
-
-            console.log("DATAROUNDD WINNINGS: ", dataRound)
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/postWinningTickets`, {
-                method: 'POST',
-                headers: {
-                    authorization: `Bearer ${token}`,
-                    'content-type': 'application/json',
-                },
-                body: JSON.stringify({
-                    winning_number: winning_number,
-                    game_id: game_id, 
-                    dataRound: dataRound, 
-                    dataSpin: dataSpin, 
-                    dataPrizes: dataPrizes,
-                })
-            })
-
-            const data = await response.json();
-
-            if (response.status != 200) {
-                console.log("Error in postWinningTickets fontend: ", data);
-            }
-            //console.log("POST WINNING: ", data)
-            socket.emit("latestResults", data.winning_number, data.game_id, data.round_number, data.spin_number, data.prize_name)
-            //console.log("POST WINNING:", data)
-
-        } catch (error) {
-            console.log("Error in postWinningTickets: ", error);
         }
     }
 
@@ -538,46 +529,12 @@ export default function Ruleta () {
                 return
             }
 
-            const total_tickets = dataTickets.length;
-            setCurrentTickets(dataTickets);
-            setCurrentTotalTickets(total_tickets);
+            const activeTickets = dataTickets.filter((ticket: TicketData) => ticket.status !== 'eliminated');
+            setCurrentTicketsList(dataTickets);
+            setCurrentTotalTickets(activeTickets.length);
 
         } catch (error) {
             console.log("Error in getTickets: ", error)
-        }
-    }
-
-    async function deleteTicket (game_id?: number, winning_number?: number) {
-
-        const token = localStorage.getItem('token');
-
-        console.log("OAKOAKKOAAKA: ", game_id, winning_number)
-
-        try {
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/deleteTicket`, {
-                method: 'DELETE',
-                headers: {
-                    authorization: `Bearer ${token}`,
-                    'content-type': 'application/json',
-                },
-                body: JSON.stringify({
-                    game_id: game_id,
-                    winning_number: winning_number,
-                })
-            })
-
-            const data = await response.json();
-
-            if (response.status != 200) {
-                console.log("Error en response deleteTicket.")
-                return
-            }
-
-            console.log("numeros borrados: ", data);
-
-        } catch (error) {
-            console.log("Error in deleteTicket frontend: ", error)
         }
     }
 
@@ -602,17 +559,13 @@ export default function Ruleta () {
 
             if (response.status != 200) {
                 setShowMessageFloating(true);
-                setMessageFloating({show: true, messages: dataSpin.error, type: 'bad'});
+                setMessageFloating({show: true, messages: Array.isArray(dataSpin.error) ? dataSpin.error : [dataSpin.error ?? "Error al realizar el giro, intentalo de nuevo."], type: 'bad'});
                 return;
             }
 
             console.log("DATOS DE GIRO: ", dataSpin)
 
-            //const winning_number = await dataSpin.winning_number
-
-            deleteTicket(currentGameData?.id, dataSpin.winning_number)
-            //console.log("ID y numero ganador DE JUEGO: ", currentGameData?.id, winning_number)
-
+            // El servidor ya registro el giro, elimino a quienes no avanzan y guardo el resultado.
             const result = await getPrizes(currentGameData!.id, dataRound.number);
 
             if (!result) {
@@ -620,11 +573,14 @@ export default function Ruleta () {
                 return
             }
 
-            const { dataRoulette, dataPrizes } = result;
-            console.log("DATATATA round: ", dataRound)
-            await postWinningTickets(dataSpin.winning_number, currentGameData!.id, dataRound, dataSpin, dataPrizes)
+            const { dataRoulette } = result;
 
-            socket.emit("spin", dataSpin.winning_number, dataRoulette);
+            socket.emit("spin", dataSpin.winning_number, dataRoulette, dataSpin.winners);
+
+            // El resultado se publica cuando termina la animacion para no adelantar el numero ganador.
+            setTimeout(() => {
+                socket.emit("latestResults", dataSpin.winning_number, dataSpin.game_id, dataSpin.round_number, dataSpin.spin_number, dataSpin.prize_name)
+            }, 10500)
 
         } catch (error) {
             setShowMessageFloating(true);
@@ -774,6 +730,14 @@ export default function Ruleta () {
                         <div className='casino_number flex justify-center items-center w-40 h-40 sm:w-56 sm:h-56 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 text-7xl sm:text-9xl font-black text-white'>
                             {winnerCelebration.number}
                         </div>
+                        {winnerCelebration.winners.length > 0 ? (
+                            <div className='flex flex-col items-center gap-1 max-h-40 overflow-y-auto'>
+                                {winnerCelebration.iAmWinner ? (
+                                    <p className='casino_title text-2xl sm:text-3xl font-extrabold text-green-300'>¡ERES GANADOR!</p>
+                                ) : null}
+                                <p className='text-lg sm:text-xl text-white'>Ganador{winnerCelebration.winners.length > 1 ? 'es' : ''}: {winnerCelebration.winners.map((winner) => winner.display_name).join(', ')}</p>
+                            </div>
+                        ) : null}
                         {winnerCelebration.prize ? (
                             <p className='text-xl sm:text-3xl font-bold text-yellow-200'>Premio: {winnerCelebration.prize}</p>
                         ) : null}
@@ -789,6 +753,8 @@ export default function Ruleta () {
                         <div className='flex flex-col text-end gap-1'>
                             <p className='text-[0.9rem]'>Fecha de finalizacion del juego: <span className='font-semibold'>{`${currentGameData?.end_datetime.split("T")[0]} - ${currentGameData?.end_datetime.split("T")[1].slice(0, 5)}hrs`}</span></p>
                             <p className="flex justify-end items-center font-bold text-2xl gap-1">Tus tickets: {currentTotalTickets}<FaTicketAlt className="inline rotate-125"/></p>
+                            {eliminatedTickets > 0 ? <p className='text-sm text-red-400'>{`Eliminados: ${eliminatedTickets}`}</p> : null}
+                            {currentTickets.length > 0 && currentTotalTickets === 0 ? <p className='text-sm text-red-400'>Ya no tienes tickets en juego.</p> : null}
                         </div>                        
                     </div>
                     <div className="flex flex-row justify-around items-center w-full gap-5">
@@ -801,12 +767,22 @@ export default function Ruleta () {
                     <div className='flex flex-col justify-center items-center gap-5'>
                         <div data-aos='zoom-in' className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
                         {role === 'admin' ? (
-                            <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true, false)} 
-                                className={'w-[50%] rounded-xl text-xl font-bold text-black bg-linear-to-r from-[rgb(249,255,86)] to-[rgb(252,255,168)] shadow-[0px_0px_20px_yellow] py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
+                            <button disabled={spinBusy || finished} onClick={ async () => {
+                                if (spinBusy || refIsSpinning.current) {
+                                    return;
+                                }
+                                setSpinBusy(true);
+                                try {
+                                    await getCurrentRoundGame(currentGameData!.id, true, false);
+                                } finally {
+                                    setSpinBusy(false);
+                                }
+                            }} 
+                                className={'w-[50%] rounded-xl text-xl font-bold text-black bg-linear-to-r from-[rgb(249,255,86)] to-[rgb(252,255,168)] shadow-[0px_0px_20px_yellow] py-3 px-2 cursor-pointer active:scale-95' + (finished ? ' hidden ' : ' block ') + (spinBusy ? ' opacity-50 cursor-not-allowed ' : '')}>
                                     Girar
                             </button>  
                         ) : null}    
-                        {currentRoundData?.total_current_spins >= 10 ? (
+                        {finished ? (
                             <p className='text-xl text-red-600 font-bold'>Juego finalizado.</p>
                         ) : null}                                            
                     </div>

@@ -16,6 +16,19 @@ interface Prize {
     roulette_number: number
 }
 
+interface Winner {
+    round_number: number
+    spin_number: number
+    winning_number: number
+    prize_name: string | null
+    user_id: number
+    name: string
+    last_name: string
+    email: string
+    phone_number: string
+    tickets: number
+}
+
 interface Game {
     id?: number
     title: string
@@ -54,6 +67,7 @@ export default function Configuracion () {
         round: 1,
         roulette_number: 0
     })
+    const [winnerList, setWinnerList] = useState<Winner[]>([]);
     const [gameId, setGameId] = useState(0);
     const [inputSearch, setInputSearch] = useState<string>("");
     const [errorGame, setErrorGame] = useState<string>("");
@@ -218,6 +232,32 @@ export default function Configuracion () {
             console.log("Error in getPrizes frontend.")
         } finally {
             setTimeout(() => setErrorPrize(""), 5000);
+        }
+    }
+
+    async function getGameWinners (gameId: number) {
+
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getGameWinners?game_id=${gameId}`, {
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            })
+
+            const data = await response.json();
+
+            if (response.status !== 200) {
+                setWinnerList([]);
+                return
+            }
+
+            setWinnerList(data)
+
+        } catch (error) {
+            console.log("Error in getGameWinners frontend.")
         }
     }
 
@@ -562,6 +602,37 @@ export default function Configuracion () {
                     </table>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
                     <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
+                    <h1 className='w-full font-bold text-2xl'>Ganadores</h1>
+                    <div className='w-full max-h-72 overflow-auto border-1 rounded-2xl'>
+                        <table className='w-full text-center'>
+                            <thead className='sticky top-0'>
+                                <tr className='border-b-1 bg-blue-500 text-white'>
+                                    <th>Ronda</th>
+                                    <th>Giro</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Numero</th>
+                                    <th>Correo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {winnerList.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className='py-3 text-gray-500'>Aun no hay ganadores.</td>
+                                    </tr>
+                                ) : winnerList.map((obj, index) => (
+                                    <tr key={`${obj.round_number}-${obj.spin_number}-${obj.user_id}-${index}`} className='border-b-1 hover:bg-blue-200'>
+                                        <td>{obj.round_number}</td>
+                                        <td>{obj.spin_number}</td>
+                                        <td>{obj.name}</td>
+                                        <td>{obj.last_name}</td>
+                                        <td>{obj.phone_number}</td>
+                                        <td>{obj.email}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                     <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => updateGame()}
                             className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
@@ -638,6 +709,8 @@ export default function Configuracion () {
                                             end_datetime: formatDateTimeLocal(obj.end_datetime),
                                         })
                                         getPrizes(obj.id!);
+                                        setWinnerList([]);
+                                        getGameWinners(obj.id!);
                                         setPrize({
                                             name: "",
                                             type: "Dinero en efectivo",
