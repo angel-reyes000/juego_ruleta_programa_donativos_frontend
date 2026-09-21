@@ -739,7 +739,7 @@ export default function Ruleta () {
                     </p>
                 </div>
             </dialog>
-            <div className=" flex flex-col bg-[rgba(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-20">
+            <div className=" flex flex-col bg-[rgb(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-20">
                 {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
                 <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
                     <div className='flex justify-between w-full'>
@@ -760,7 +760,7 @@ export default function Ruleta () {
                         <div data-aos='zoom-in' className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
                         {role === 'admin' ? (
                             <button onClick={ () => getCurrentRoundGame(currentGameData!.id, true, false)} 
-                                className={'w-[50%] rounded-xl text-xl font-semibold text-black bg-linear-to-r from-yellow-500 to-yellow-200 py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
+                                className={'w-[50%] rounded-xl text-xl font-bold text-black bg-linear-to-r from-[rgb(249,255,86)] to-[rgb(252,255,168)] shadow-[0px_0px_20px_yellow] py-3 px-2 cursor-pointer active:scale-95' + (currentRoundData?.total_current_spins >= 10 ? ' hidden ' : ' block ')}>
                                     Girar
                             </button>  
                         ) : null}    
@@ -769,7 +769,7 @@ export default function Ruleta () {
                         ) : null}                                            
                     </div>
                     <div className="flex flex-col justify-center items-center gap-5">
-                        <div data-aos='flip-right' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
+                        <div data-aos='flip-right' className="flex flex-col bg-[rgba(100,0,0,0.5)] shadow-[0px_0px_30px_red] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-bold text-xl">Progreso del sorteo</h1>
                             <div className="flex flex-col gap-5 overflow-y-scroll px-3">
                                 {rounds?.map((round: RoundsData) => (
@@ -787,7 +787,7 @@ export default function Ruleta () {
                                 ))}
                             </div>
                         </div>
-                        <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
+                        <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] shadow-[0px_0px_30px_red] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
                             <h1 className="font-bold text-xl">Ultimos resultados</h1>
                             <div className="flex flex-col gap-5 overflow-y-auto px-3">
                                 {stateWinningTickets?.sort((a, b) => b.spin_number - a.spin_number).sort((a, b) => b.round_number - a.round_number).map((obj: WinningTickets, index: number) => (

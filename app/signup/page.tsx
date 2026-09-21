@@ -96,11 +96,11 @@ export default function Signup() {
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Contraseña:</span>
-                            <input value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Confirmar contraseña:</span>
-                            <input value={user.confirm_password} onChange={(e) => setUser(prev => ({...prev, confirm_password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.confirm_password} onChange={(e) => setUser(prev => ({...prev, confirm_password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
                         </label>
                         <p className='text-right w-full text-red-500 text-[0.8rem]'>{invalidData}</p>
                         <div className="flex justify-center w-full mt-10 mb-2">

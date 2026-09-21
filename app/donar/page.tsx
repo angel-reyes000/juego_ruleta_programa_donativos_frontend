@@ -299,7 +299,7 @@ function FormPayment () {
                         </Link>
                         <button type="submit"
                             disabled={!stripe || !elements || loading}
-                            className="flex items-center justify-center py-2 px-8 rounded-[200px] bg-red-900 hover:bg-[rgb(100,0,0)] font-semibold cursor-pointer active:scale-90 gap-1">
+                            className="flex items-center justify-center py-2 px-8 rounded-[200px] bg-red-900 hover:bg-[rgb(100,0,0)] hover:shadow-[0px_0px_40px_rgb(120,0,0)] shadow-[0px_0px_20px_rgb(200,0,0)] font-semibold cursor-pointer active:scale-90 gap-1">
                             {loading? "Procesando...": `Donar $${amount} MXN`}
                         </button>
                     </div>
