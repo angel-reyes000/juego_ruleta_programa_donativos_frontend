@@ -51,3 +51,68 @@
         transform: translate(0);
     }
 }
+
+/* Animación de número ganador estilo casino */
+.casino_overlay {
+    animation: casino_fade_in 0.4s ease-out;
+}
+
+@keyframes casino_fade_in {
+    from { opacity: 0; } to { opacity: 1; }
+}
+
+.casino_frame {
+    animation: casino_pop 0.7s cubic-bezier(0.2, 1.4, 0.4, 1), casino_frame_glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes casino_pop {
+    from { transform: scale(0.2) rotate(-8deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes casino_frame_glow {
+    from { box-shadow: 0 0 20px gold, 0 0 40px rgba(255, 0, 0, 0.6); }
+    to { box-shadow: 0 0 50px gold, 0 0 100px rgba(255, 0, 0, 0.9); }
+}
+
+.casino_title {
+    text-shadow: 0 0 10px gold, 0 0 25px orange;
+    animation: casino_blink 0.8s steps(2, jump-none) infinite;
+}
+
+@keyframes casino_blink {
+    from { opacity: 1; } to { opacity: 0.55; }
+}
+
+.casino_number {
+    box-shadow: 0 0 40px gold, inset 0 0 30px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 0 20px gold;
+    animation: casino_number_reveal 1.2s ease-out, casino_number_pulse 1s ease-in-out 1.2s infinite alternate;
+}
+
+@keyframes casino_number_reveal {
+    0% { transform: rotateX(90deg) scale(0.5); filter: blur(6px); }
+    60% { transform: rotateX(-15deg) scale(1.15); filter: blur(0); }
+    100% { transform: rotateX(0deg) scale(1); }
+}
+
+@keyframes casino_number_pulse {
+    from { transform: scale(1); } to { transform: scale(1.08); }
+}
+
+.casino_coin {
+    position: absolute;
+    top: -40px;
+    width: 26px;
+    height: 26px;
+    border-radius: 9999px;
+    border: 3px solid #b8860b;
+    background: radial-gradient(circle at 35% 35%, #fff7b0, #ffd700 60%, #d4a017);
+    animation-name: casino_coin_fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes casino_coin_fall {
+    from { transform: translateY(0) rotateY(0deg); }
+    to { transform: translateY(110vh) rotateY(720deg); }
+}
