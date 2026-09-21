@@ -49,65 +49,65 @@ export default function MiCuenta () {
     return (
         <>
             <NavBar />
-            <main className="flex flex-wrap flex-col md:flex-row h-auto min-h-dvh w-full content-start px-5 py-10 gap-2 bg-[rgb(30,0,0)]">
-                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
-                    <div className="flex items-center w-full text-lg font-bold gap-2">
+            <main className="flex flex-wrap flex-col md:flex-row justify-center h-auto min-h-dvh w-full content-start px-5 py-10 gap-5">
+                <div className="casino_card casino_fade_up flex flex-row flex-wrap w-full md:w-[45%] p-5 gap-3 text-white">
+                    <div className="casino_heading flex items-center w-full text-xl gap-2">
                       <FaRegEnvelope size={20} />  
                       <p>Contactanos</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Numero celular:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Numero celular:</p>
                         <p>00 000 000 000</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Correo Electronico:</p>
-                        <a className="hover:underline hover:text-blue-500" href="mailto:ejemplo@gmail.com">ejemplo@ejem.com</a>
+                        <p className="font-semibold text-sm text-casino-gold">Correo Electronico:</p>
+                        <a className="casino_link" href="mailto:ejemplo@gmail.com">ejemplo@ejem.com</a>
                     </div>
                 </div>
-                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
-                    <div className="flex items-center w-full text-lg font-bold gap-2">
+                <div className="casino_card casino_fade_up flex flex-row flex-wrap w-full md:w-[45%] p-5 gap-3 text-white">
+                    <div className="casino_heading flex items-center w-full text-xl gap-2">
                       <FaUser />  
                       <p>Mi perfil</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Nombre:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Nombre:</p>
                         <p>{dataUser?.name}</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Apellido:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Apellido:</p>
                         <p>{dataUser?.last_name}</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Correo electronico:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Correo electronico:</p>
                         <p>{dataUser?.email}</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Numero celular:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Numero celular:</p>
                         <p>{dataUser?.phone_number}</p>
                     </div>
                 </div>
-                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
-                    <div className="flex items-center w-full text-lg font-bold gap-2">
+                <div className="casino_card casino_fade_up flex flex-row flex-wrap w-full md:w-[45%] p-5 gap-3 text-white">
+                    <div className="casino_heading flex items-center w-full text-xl gap-2">
                       <FaLock />  
                       <p>Cuenta</p>
                     </div>
                     <div className="w-full md:w-[45%]">
-                        <p className="font-semibold text-sm">Fecha de creacion:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Fecha de creacion:</p>
                         <p>{dataUser?.created_at.slice(0, 10)}</p>
                     </div>
                     <button onClick={() => {
                         localStorage.removeItem('token')
                         router.push('/')
-                    }} className="w-full p-2 border rounded-lg hover:bg-[rgba(255,255,255,0.1)] cursor-pointer active:scale-95">Cerrar sesion
+                    }} className="casino_btn casino_btn_red w-full">Cerrar sesion
                     </button>
                 </div>
-                <div className="flex flex-row flex-wrap bg-[rgb(100,0,0)] w-full md:w-[45%] rounded-lg p-5 gap-3 text-white">
-                    <div className="flex items-center w-full text-lg font-bold gap-2">
+                <div className="casino_card casino_fade_up flex flex-row flex-wrap w-full md:w-[45%] p-5 gap-3 text-white">
+                    <div className="casino_heading flex items-center w-full text-xl gap-2">
                       <MdApps />  
                       <p>Aplicacion</p>
                     </div>
                     <div className="w-full sm:w-[45%]">
-                        <p className="font-semibold text-sm">Version:</p>
+                        <p className="font-semibold text-sm text-casino-gold">Version:</p>
                         <p>1.0.0</p>
                     </div>
                 </div>

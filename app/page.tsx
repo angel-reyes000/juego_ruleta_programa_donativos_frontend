@@ -1,9 +1,9 @@
 "use client"
 
+import MiniRoulette from '@/components/miniRoulette';
 import { FaPlus } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import mini_ruleta from '../public/images/mini_ruleta.png'
 import Image from 'next/image';
 import logo from '@/public/images/5_y_Gana-removebg-preview.png';
 import './styles.css';
@@ -48,6 +48,7 @@ export default function Home () {
       delay: 0,
       duration: 1000,
       once: false,
+      offset: 0,
     })
 
   }, [])
@@ -55,13 +56,13 @@ export default function Home () {
 
   return (
     <>
-      <dialog ref={refModal} className='bg-[rgba(0,0,0,0)] m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
-        <div className='flex flex-col bg-[rgba(50,0,0,0.9)] p-5 gap-5'>
+      <dialog ref={refModal} className='casino_modal m-auto text-center w-[90%] sm:w-[60%] md:w-[45%] lg:w-[30%]'>
+        <div className='flex flex-col p-5 gap-5'>
           <div className='flex justify-end w-full'>
-            <FaPlus onClick={() => refModal.current?.close()} size={20} className='rotate-45 text-white cursor-pointer active:scale-90' />
+            <FaPlus onClick={() => refModal.current?.close()} size={20} className='rotate-45 text-casino-gold cursor-pointer active:scale-90' />
           </div>
           <div className='flex justify-center w-full'>
-            <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+            <MiniRoulette size={100} className='animation_mini_ruleta' />
           </div>
           <p className='font-semibold text-white text-[1.1rem] m-0 p-0'>
             {stateToken ? '¿Estas seguro de cerrar sesion?' : 'Inicia sesion para continuar con tu donacion y la posibilidad de granar grandes premios!.'}
@@ -73,24 +74,38 @@ export default function Home () {
                     router.push('/login')
                   } else {
                     router.push('/login')
-                  }}} className='p-2 w-[80%] rounded-md bg-gradient-to-r from-red-500 to-yellow-700 cursor-pointer active:scale-95 text-white'>
+                  }}} className='casino_btn casino_btn_red w-[80%]'>
                 {stateToken ? 'Cerrar sesion' : 'Iniciar sesion'}
               </button>
           </div>
         </div>
       </dialog>
-      <div className="flex flex-col bg-[url('/images/fondo_incio.jpg')] h-full bg-center bg-cover bg-no-repeat py-3 px-10 md:px-20">
-        <header className='h-auto'>
+      <div className="relative flex flex-col min-h-dvh bg-[url('/images/fondo_incio.jpg')] bg-center bg-cover bg-no-repeat py-3 px-6 sm:px-10 md:px-20 overflow-hidden">
+        <div className='casino_hero_overlay absolute inset-0' />
+        <header className='relative h-auto'>
           <nav className='flex justify-between items-center w-full'>
-            <Image src={logo} height={50} width={50} className='text-blue-300' alt='logo' />
-            <p onClick={() => stateToken ? refModal.current?.showModal() : router.push('/login')} className='p-3 text-white text-md md:text-xl rounded-sm font-semibold cursor-pointer hover:bg-[rgb(255,255,255,0.3)] hover:text-black'>{stateToken ? 'Cerrar sesion' : 'Iniciar sesion'}</p>
+            <Image src={logo} height={50} width={50} className='casino_logo' alt='logo' />
+            <p onClick={() => stateToken ? refModal.current?.showModal() : router.push('/login')} className='casino_btn casino_btn_ghost text-sm md:text-lg'>{stateToken ? 'Cerrar sesion' : 'Iniciar sesion'}</p>
           </nav>
         </header>
-        <main className='flex items-center h-dvh pb-20 md:pb-30'>
-          <section className='flex flex-col justify-center w-full lg:w-1/2 gap-5'>
-            <h1 data-aos="fade-up" className='text-4xl md:text-6xl font-bold text-white'>Bienvenido al programa de donativos</h1>
-            <p data-aos="fade-up" className='text-md md:text-lg text-white whitespace-pre-wrap'>{description}</p>
-            <button onClick={() => stateToken ? router.push('/donar') : refModal.current?.showModal()} data-aos="zoom-in" className='text-lg text-white mt-5 font-semibold rounded-md bg-gradient-to-r from-orange-400 to-yellow-500 w-[50%] md:w-[30%] p-2 cursor-pointer active:scale-95'>Comienza aqui!</button>
+        <main className='relative flex flex-1 flex-col-reverse lg:flex-row items-center justify-center lg:justify-between gap-8 py-10'>
+          <section className='flex flex-col justify-center w-full lg:w-3/5 gap-6 text-center lg:text-left'>
+            <p data-aos="fade-down" className='casino_marquee casino_neon_text text-lg md:text-2xl'>♠ ♥ ¡Tu suerte gira aqui! ♦ ♣</p>
+            <h1 data-aos="fade-up" className='casino_heading text-4xl sm:text-5xl md:text-7xl leading-tight'>Bienvenido al programa de donativos</h1>
+            <p data-aos="fade-up" className='text-md md:text-lg text-white/90 whitespace-pre-wrap'>{description}</p>
+            <div data-aos="fade-up" className='flex flex-wrap justify-center lg:justify-start gap-3'>
+              <span className='casino_chip text-sm md:text-base'>5 rondas</span>
+              <span className='casino_chip text-sm md:text-base'>10 numeros</span>
+              <span className='casino_chip text-sm md:text-base'>$100 = 1 ticket</span>
+            </div>
+            <div className='casino_fade_up flex justify-center lg:justify-start'>
+              <button onClick={() => stateToken ? router.push('/donar') : refModal.current?.showModal()} className='casino_btn casino_btn_pulse text-lg md:text-xl mt-2'>Comienza aqui!</button>
+            </div>
+          </section>
+          <section data-aos="zoom-in" className='flex justify-center items-center w-[40%] sm:w-[28%] lg:w-1/4'>
+            <div className='casino_float w-full'>
+              <MiniRoulette className='casino_spin_slow' />
+            </div>
           </section>
         </main>
       </div>

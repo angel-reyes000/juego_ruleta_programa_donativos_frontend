@@ -1,7 +1,6 @@
 "use client"
 
-import mini_ruleta from '../../public/images/mini_ruleta.png';
-import Image from 'next/image';
+import MiniRoulette from '@/components/miniRoulette';
 import '../styles.css';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -58,26 +57,26 @@ export default function Login() {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center h-dvh">
-                <div className="absolute blur-[3px] h-dvh w-full bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
-                <div className="flex flex-col items-center py-7 px-10 rounded-xl shadow-[10px_0_40px_rgba(80,0,0,1),-10px_0_40px_rgba(80,0,0,1)] z-10 h-auto w-[70%] md:w-[50%] lg:w-[30%] border-2 border-none bg-gradient-to-b from-[rgb(50,0,0,0.7)] to-[rgb(0,0,0,0.7)]">
-                    <h1 className="text-left text-3xl font-semibold text-white">Iniciar sesion</h1>
-                    <Image className='mt-5 mb-2 animation_mini_ruleta' src={mini_ruleta} height={100} width={100} alt='mini ruleta' />
+            <div className="flex flex-col justify-center items-center min-h-dvh py-10">
+                <div className="fixed inset-0 blur-[3px] opacity-40 bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
+                <div className="casino_card casino_lights casino_fade_up flex flex-col items-center py-7 px-6 sm:px-10 z-10 h-auto w-[88%] sm:w-[70%] md:w-[50%] lg:w-[30%]">
+                    <h1 className="casino_heading text-center text-3xl">Iniciar sesion</h1>
+                    <MiniRoulette size={100} className='mt-5 mb-2 animation_mini_ruleta' />
                     <form onSubmit={(e) => loginUser(e)} className="flex flex-col md:flex-wrap justify-center items-center text-white w-full h-full gap-y-5">                                    
                         <label className="flex flex-col w-full gap-1">
                             <span className="font-semibold">Correo electronico:</span>
-                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="py-2 px-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="email" placeholder="ej. example@dominio.xxxx" required></input>
+                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="casino_input" type="email" placeholder="ej. example@dominio.xxxx" required></input>
                         </label>
                         <label className="flex flex-col w-full gap-1">
                             <span className="font-semibold">Contraseña:</span>
-                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="py-2 px-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="casino_input" maxLength={15} required></input>
                         </label>
-                        <p className='text-red-500 text-[0.8rem] w-full text-right'>{invalidData}</p>
+                        <p className='casino_error text-[0.8rem] w-full text-right'>{invalidData}</p>
                         <div className="flex justify-center w-full mt-10 mb-2">
-                            <button type='submit' className="p-2 w-[90%] font-semibold bg-gradient-to-r from-red-700 to-red-400 rounded-md cursor-pointer active:scale-95">Registrarse</button>
+                            <button type='submit' className="casino_btn w-[90%]">Registrarse</button>
                         </div>
                     </form>
-                    <p className="text-white">No tienes una cuenta? <span className='text-blue-400 hover:underline cursor-pointer'><Link href={'/signup'}>Registrate</Link></span></p> 
+                    <p className="text-white">No tienes una cuenta? <span className='casino_link cursor-pointer'><Link href={'/signup'}>Registrate</Link></span></p> 
                 </div>
             </div>
         </>

@@ -1,10 +1,9 @@
 "use client"
 
+import MiniRoulette from '@/components/miniRoulette';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEdit, FaSearch, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
-import mini_ruleta from '@/public/images/mini_ruleta.png';
-import Image from 'next/image';
 import '@/app/styles.css';
 
 interface Prize {
@@ -369,67 +368,67 @@ export default function Configuracion () {
     return (
         <>
             {/*-----------------------------------------MODAL WARNING---------------------------------------------------*/}
-            <dialog ref={refModalWarning} className='bg-[rgba(50,0,0,0.9)] m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
+            <dialog ref={refModalWarning} className='casino_modal m-auto text-center w-[90%] sm:w-[60%] md:w-[45%] lg:w-[30%]'>
                 <div className='flex flex-col p-5 gap-5'>
                     <div className='flex justify-start items-center w-full'>
-                        <p onClick={() => router.push('/')} className='text-white cursor-pointer active:scale-90 hover:underline hover:text-blue-400'>{'< '}regresar</p>
+                        <p onClick={() => router.push('/')} className='casino_link cursor-pointer active:scale-90'>{'< '}regresar</p>
                     </div>
                     <div className='flex justify-center w-full'>
-                        <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                        <MiniRoulette size={100} className='animation_mini_ruleta' />
                     </div>
                     <p className='font-semibold text-white text-[1.1rem] m-0 p-0'>
                         Tu sesion a expirado, inicia sesion para poder continuar!.
                     </p>
                     <div className='flex justify-center items-center w-full'>
-                        <button onClick={() => router.push('/login')} className='p-2 w-[80%] rounded-md bg-gradient-to-r from-red-500 to-yellow-700 cursor-pointer active:scale-95 text-white'>
+                        <button onClick={() => router.push('/login')} className='casino_btn casino_btn_red w-[80%]'>
                             Iniciar sesion
                         </button>
                     </div>
                 </div>
             </dialog>
             {/*-----------------------------------------MODAL TO ADD GAMES---------------------------------------------------*/}
-            <dialog ref={refModalAdd} className='flex flex-col m-auto w-[90%] md:w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
+            <dialog ref={refModalAdd} className='casino_modal casino_scroll flex flex-col m-auto w-[95%] md:w-[70%] lg:w-[60%] h-[90%] max-h-[90%] p-5 gap-3'>
                 <div className='flex justify-between items-center font-bold text-2xl'>
-                    <h1>Crear nuevo juego</h1>
+                    <h1 className='casino_heading'>Crear nuevo juego</h1>
                     <button onClick={() => {
                                 refModalAdd.current.style.display = 'none';
                                 refModalAdd.current.close()
-                            }} className='cursor-pointer active:scale-90'>
+                            }} className='casino_icon_btn'>
                             <FaPlus className='rotate-45' />
                     </button>
                 </div>
                 <div className='flex flex-wrap justify-between gap-2'>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Titulo:
-                        <input value={game.title ?? ""} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.title ?? ""} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de inicio:
-                        <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de finalizaicion:
-                        <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Capacidad:
-                        <input value={game.max_capacity ?? ""} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.max_capacity ?? ""} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         descripcion:
-                        <input value={game.description ?? ""} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.description ?? ""} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='casino_input font-medium'></input>
                     </label>
                 </div>
-                <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
-                <h1 className='font-bold text-2xl'>Premios</h1>
+                <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
+                <h1 className='casino_heading text-2xl'>Premios</h1>
                 <div className='flex flex-wrap justify-between gap-2'>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Nombre:
-                        <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Tipo:
-                        <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'>
+                        <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='casino_input font-medium'>
                             <option>Dinero en efectivo</option>
                             <option>Producto</option>
                             <option>Experiencia (viaje, cena, concierto, etc.)</option>
@@ -438,27 +437,27 @@ export default function Configuracion () {
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Valor$:
-                        <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Ronda:
-                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Numero en ruleta:
-                        <input value={prize.roulette_number ?? ''} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.roulette_number ?? ''} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='casino_input font-medium'></input>
                     </label>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
-                    <div className='flex items-end text-white font-semibold'>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
+                    <div className='flex items-end font-semibold'>
                         <button onClick={() => postPrizes()}
-                            className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
+                            className='casino_btn'>
                             <FaPlus />Agregar premio
                         </button>
                     </div>
-                    <table className='w-full text-center border-1 rounded-2xl'>
+                    <table className='casino_table text-center'>
                         <thead>
-                            <tr className='border-b-1 bg-blue-500 text-white'>
+                            <tr>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Valor$</th>
@@ -469,7 +468,7 @@ export default function Configuracion () {
                         </thead>
                         <tbody>
                             {game.prize_list?.map((obj) => (
-                                <tr key={obj.id} className='border-b-1 hover:bg-blue-200'>
+                                <tr key={obj.id}>
                                     <td>{obj.name}</td>
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
@@ -477,7 +476,7 @@ export default function Configuracion () {
                                     <td>{obj.roulette_number}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => setGame(prev => ({...prev, prize_list: prev.prize_list.filter(prize => prize.id !== obj.id)}))}
-                                            className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
+                                            className='casino_icon_btn casino_icon_btn_danger'>
                                             <FaTrash />
                                         </button>
                                     </td>
@@ -485,66 +484,66 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
                     <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => postGame()}
-                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
+                            className='casino_btn sm:w-[30%]'>
                             <FaSave />Crear juego
                         </button>
                         <button onClick={() => {
                             refModalAdd.current.style.display = 'none';
                             refModalAdd.current.close()
                         }}
-                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold hover:bg-gray-300'>
+                            className='casino_btn casino_btn_ghost sm:w-[30%]'>
                             Cancelar
                         </button>
                     </div>
                 </div>
             </dialog>
             {/*-----------------------------------------MODAL TO EDIT GAMES---------------------------------------------------*/}
-            <dialog ref={refModalEdit} className='flex flex-col m-auto w-[90%] md:w-[60%] h-[90%] max-h-[90%] p-5 rounded-md gap-3'>
+            <dialog ref={refModalEdit} className='casino_modal casino_scroll flex flex-col m-auto w-[95%] md:w-[70%] lg:w-[60%] h-[90%] max-h-[90%] p-5 gap-3'>
                 <div className='flex justify-between items-center font-bold text-2xl'>
-                    <h1>Editar juego</h1>
+                    <h1 className='casino_heading'>Editar juego</h1>
                     <button onClick={() => {
                                 refModalEdit.current.style.display = 'none';
                                 refModalEdit.current.close()
-                            }} className='cursor-pointer active:scale-90'>
+                            }} className='casino_icon_btn'>
                             <FaPlus className='rotate-45' />
                     </button>
                 </div>
                 <div className='flex flex-wrap justify-between gap-2'>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Titulo:
-                        <input value={game.title} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.title} onChange={(e) => setGame(prev => ({...prev, title: e.target.value}))} maxLength={100} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de inicio:
-                        <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.start_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, start_datetime: e.target.value}))} type='datetime-local' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Fecha y hora de finalizaicion:
-                        <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.end_datetime ?? ""} onChange={(e) => setGame(prev => ({...prev, end_datetime: e.target.value}))} type='datetime-local' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Capacidad:
-                        <input value={game.max_capacity} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.max_capacity} onChange={(e) => setGame(prev => ({...prev, max_capacity: Number(e.target.value)}))} type='number' min={1} max={5000} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         descripcion:
-                        <input value={game.description} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={game.description} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='casino_input font-medium'></input>
                     </label>
                 </div>
-                <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
-                <h1 className='font-bold text-2xl'>Premios</h1>
+                <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
+                <h1 className='casino_heading text-2xl'>Premios</h1>
                 <div className='flex flex-wrap justify-between gap-2'>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Nombre:
-                        <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.name} onChange={(e) => setPrize(prev => ({...prev, name: e.target.value}))} maxLength={100} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Tipo:
-                        <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'>
+                        <select value={prize.type} onChange={(e) => setPrize(prev => ({...prev, type: e.target.value}))} className='casino_input font-medium'>
                             <option>Dinero en efectivo</option>
                             <option>Producto</option>
                             <option>Experiencia (viaje, cena, concierto, etc.)</option>
@@ -553,27 +552,27 @@ export default function Configuracion () {
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Valor$:
-                        <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.value} onChange={(e) => setPrize(prev => ({...prev, value: Number(e.target.value)}))} type='number' className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Ronda:
-                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.round} onChange={(e) => setPrize(prev => ({...prev, round: Number(e.target.value)}))} type='number' min={1} max={5} className='casino_input font-medium'></input>
                     </label>
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         Numero en ruleta:
-                        <input value={prize.roulette_number} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='px-2 py-1 font-medium focus:outline-none rounded-md border-2 border-gray-400 focus:border-gray-800'></input>
+                        <input value={prize.roulette_number} onChange={(e) => setPrize(prev => ({...prev, roulette_number: Number(e.target.value)}))} type='number' min={1} max={10} className='casino_input font-medium'></input>
                     </label>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
-                    <div className='flex items-end text-white font-semibold'>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
+                    <div className='flex items-end font-semibold'>
                         <button onClick={() => postPrize()}
-                            className='flex items-center bg-blue-500 px-4 py-2 rounded-lg cursor-pointer active:scale-95 gap-1 hover:bg-blue-800'>
+                            className='casino_btn'>
                             <FaPlus />Agregar premio
                         </button>
                     </div>
-                    <table className='w-full text-center border-1 rounded-2xl'>
+                    <table className='casino_table text-center'>
                         <thead>
-                            <tr className='border-b-1 bg-blue-500 text-white'>
+                            <tr>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Valor$</th>
@@ -584,7 +583,7 @@ export default function Configuracion () {
                         </thead>
                         <tbody>
                             {prizeList?.map(obj => (
-                                <tr key={obj.id} className='border-b-1 hover:bg-blue-200'>
+                                <tr key={obj.id}>
                                     <td>{obj.name}</td>
                                     <td>{obj.type}</td>
                                     <td>{obj.value}</td>
@@ -592,7 +591,7 @@ export default function Configuracion () {
                                     <td>{obj.roulette_number}</td>
                                     <td className='flex justify-center py-2'>
                                         <button onClick={() => deletePrize(obj?.id, gameId)}
-                                            className='cursor-pointer bg-red-500 p-2 rounded-sm active:scale-90'>
+                                            className='casino_icon_btn casino_icon_btn_danger'>
                                             <FaTrash />
                                         </button>
                                     </td>
@@ -600,13 +599,13 @@ export default function Configuracion () {
                             ))}
                         </tbody>
                     </table>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorPrize}</p>
-                    <p className='w-full text-right text-red-500 text-[0.9rem]'>{errorGame}</p>
-                    <h1 className='w-full font-bold text-2xl'>Ganadores</h1>
-                    <div className='w-full max-h-72 overflow-auto border-1 rounded-2xl'>
-                        <table className='w-full text-center'>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorPrize}</p>
+                    <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
+                    <h1 className='casino_heading w-full text-2xl'>Ganadores</h1>
+                    <div className='w-full max-h-72 overflow-auto casino_scroll rounded-2xl'>
+                        <table className='casino_table text-center'>
                             <thead className='sticky top-0'>
-                                <tr className='border-b-1 bg-blue-500 text-white'>
+                                <tr>
                                     <th>Ronda</th>
                                     <th>Giro</th>
                                     <th>Nombre</th>
@@ -618,10 +617,10 @@ export default function Configuracion () {
                             <tbody>
                                 {winnerList.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className='py-3 text-gray-500'>Aun no hay ganadores.</td>
+                                        <td colSpan={6} className='py-3 text-white/60'>Aun no hay ganadores.</td>
                                     </tr>
                                 ) : winnerList.map((obj, index) => (
-                                    <tr key={`${obj.round_number}-${obj.spin_number}-${obj.user_id}-${index}`} className='border-b-1 hover:bg-blue-200'>
+                                    <tr key={`${obj.round_number}-${obj.spin_number}-${obj.user_id}-${index}`}>
                                         <td>{obj.round_number}</td>
                                         <td>{obj.spin_number}</td>
                                         <td>{obj.name}</td>
@@ -635,28 +634,28 @@ export default function Configuracion () {
                     </div>
                     <div className='flex justify-between w-full gap-2'>
                         <button onClick={() => updateGame()}
-                            className='flex justify-center items-center cursor-pointer bg-blue-500 text-white p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold gap-1 hover:bg-blue-800'>
+                            className='casino_btn sm:w-[30%]'>
                             <FaSave />Guardar
                         </button>
                         <button onClick={() => {
                                 refModalEdit.current.style.display = 'none';
                                 refModalEdit.current.close()
                             }}
-                            className='cursor-pointer border-2 border-gray-400 p-2 rounded-md active:scale-95 w-auto sm:w-[30%] md:w-[30%] font-semibold hover:bg-gray-300'>
+                            className='casino_btn casino_btn_ghost sm:w-[30%]'>
                             Cancelar
                         </button>
                     </div>
                 </div>
             </dialog>
             {/*-----------------------------------------TABLE OF GAMES---------------------------------------------------*/}
-            <div className="flex flex-col h-auto min-h-dvh p-10 bg-[rgb(30,0,0)] gap-15">
+            <div className="flex flex-col h-auto min-h-dvh p-5 sm:p-10 gap-10">
                 <div className='flex flex-col text-white gap-2'>
-                    <p onClick={() => router.back()} className='cursor-pointer hover:text-blue-400 hover:underline'>{'< Regresar'}</p>
-                    <h1 className='text-4xl'>Menu de configuracion</h1>
+                    <p onClick={() => router.back()} className='casino_link w-fit cursor-pointer'>{'< Regresar'}</p>
+                    <h1 className='casino_heading text-3xl sm:text-5xl'>Menu de configuracion</h1>
                 </div>
-                <div className='flex flex-col gap-3 overflow-auto'>
+                <div className='flex flex-col gap-3 overflow-auto casino_scroll'>
                     <div className='flex flex-col sm:flex-row justify-between text-white w-full gap-2'>
-                        <div className='flex items-center p-2 border-2 border-gray-400 rounded-lg gap-2'>
+                        <div className='flex items-center px-3 py-2 border-2 border-casino-gold/60 bg-black/40 rounded-lg gap-2 focus-within:shadow-[0_0_18px_rgba(255,210,63,0.6)]'>
                             <FaSearch />
                             <input value={inputSearch} onChange={((e) => setInputSearch(e.target.value))} className='focus:outline-none'></input>
                         </div>
@@ -680,17 +679,17 @@ export default function Configuracion () {
                                     roulette_number: 0,
                                 })
                             }}
-                            className='flex items-center justify-center px-3 py-2 text-md font-semibold rounded-lg cursor-pointer active:scale-95 bg-red-700 gap-1'>
+                            className='casino_btn casino_btn_red'>
                             <FaPlus />Crear nuevo juego
                         </button>
                     </div>
-                    <table className='border-1 border-white text-white w-full'>
-                        <thead className='bg-red-800'>
-                            <tr className='border-1 text-center'>
-                                <th className='border-1'>Nombre</th>
-                                <th className='border-1'>Fecha inicio</th>
-                                <th className='border-1'>Fecha finalizacion</th>
-                                <th className='border-1'>Descripcion</th>
+                    <table className='casino_table text-white'>
+                        <thead>
+                            <tr className='text-center'>
+                                <th>Nombre</th>
+                                <th>Fecha inicio</th>
+                                <th>Fecha finalizacion</th>
+                                <th>Descripcion</th>
                             </tr>
                         </thead>
                         {Array.isArray(gameList) ? (
@@ -721,11 +720,11 @@ export default function Configuracion () {
                                         refModalEdit.current.showModal()
                                         refModalEdit.current.style.display = 'flex'
                                     }} 
-                                    className='border-1 text-center hover:bg-gray-800 cursor-pointer'>
-                                    <td className='border-1 p-2 max-w-[100px] truncate'>{obj.title}</td>
-                                    <td className='border-1 p-2'>{`${obj.start_datetime?.split("T")[0]} - ${obj.start_datetime?.split("T")[1].slice(0, 5)}`}</td>
-                                    <td className='border-1 p-2'>{`${obj.end_datetime?.split("T")[0]} - ${obj.end_datetime?.split("T")[1].slice(0, 5)}`}</td>
-                                    <td className='border-1 p-2 max-w-[100px] truncate'>{obj.description}</td>
+                                    className='text-center cursor-pointer'>
+                                    <td className='p-2 max-w-[100px] truncate'>{obj.title}</td>
+                                    <td className='p-2'>{`${obj.start_datetime?.split("T")[0]} - ${obj.start_datetime?.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='p-2'>{`${obj.end_datetime?.split("T")[0]} - ${obj.end_datetime?.split("T")[1].slice(0, 5)}`}</td>
+                                    <td className='p-2 max-w-[100px] truncate'>{obj.description}</td>
                                 </tr>
                             ))}
                         </tbody>

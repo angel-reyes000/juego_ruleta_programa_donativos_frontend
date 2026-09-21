@@ -1,7 +1,6 @@
 "use client"
 
-import mini_ruleta from '../../public/images/mini_ruleta.png';
-import Image from 'next/image';
+import MiniRoulette from '@/components/miniRoulette';
 import '../styles.css';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -72,42 +71,42 @@ export default function Signup() {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center h-dvh">
-                <div className="absolute blur-[3px] h-[200%] lg:h-dvh w-full bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
-                <div className="flex flex-col items-center justify-center mt-80 lg:mt-0 py-7 px-10 rounded-xl shadow-[10px_0_40px_rgba(90,0,0,1),-10px_0_40px_rgba(90,0,0,1)] z-10 h-auto w-[90%] md:w-[70%] lg:w-[50%] border-2 border-none bg-gradient-to-b from-[rgb(50,0,0,0.7)] to-[rgb(0,0,0,0.7)]">
-                    <h1 className="text-center text-3xl font-semibold text-white">Crear una nueva cuenta</h1>
-                    <Image className='mt-5 mb-2 animation_mini_ruleta' src={mini_ruleta} height={100} width={100} alt='mini ruleta' />
+            <div className="flex flex-col justify-center items-center min-h-dvh py-10">
+                <div className="fixed inset-0 blur-[3px] opacity-40 bg-[url('/images/fondo_signup.jpg')] bg-center bg-cover bg-no-repeat" />
+                <div className="casino_card casino_lights casino_fade_up flex flex-col items-center justify-center py-7 px-6 sm:px-10 z-10 h-auto w-[88%] md:w-[70%] lg:w-[50%]">
+                    <h1 className="casino_heading text-center text-3xl">Crear una nueva cuenta</h1>
+                    <MiniRoulette size={100} className='mt-5 mb-2 animation_mini_ruleta' />
                     <form className="flex flex-col md:flex-row md:flex-wrap justify-between text-white w-full h-full gap-y-5">                    
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Nombre:</span>
-                            <input value={user.name} onChange={(e) => setUser(prev => ({...prev, name: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="text" placeholder="ej. Angel Alejandro" maxLength={30} required></input>
+                            <input value={user.name} onChange={(e) => setUser(prev => ({...prev, name: e.target.value}))} className="casino_input" type="text" placeholder="ej. Angel Alejandro" maxLength={30} required></input>
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Apellido:</span>
-                            <input value={user.last_name} onChange={(e) => setUser(prev => ({...prev, last_name: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="text" placeholder="ej. Reyes Carrasco" maxLength={30} required></input>
+                            <input value={user.last_name} onChange={(e) => setUser(prev => ({...prev, last_name: e.target.value}))} className="casino_input" type="text" placeholder="ej. Reyes Carrasco" maxLength={30} required></input>
                         </label> 
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Numero celular:</span>
-                            <input value={user.phone_number} onChange={(e) => setUser(prev => ({...prev, phone_number: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={10} required></input>
+                            <input value={user.phone_number} onChange={(e) => setUser(prev => ({...prev, phone_number: e.target.value}))} className="casino_input" maxLength={10} required></input>
                         </label>                   
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Correo electronico:</span>
-                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" type="email" placeholder="ej. example@dominio.xxxx" maxLength={50} required></input>
+                            <input value={user.email} onChange={(e) => setUser(prev => ({...prev, email: e.target.value}))} className="casino_input" type="email" placeholder="ej. example@dominio.xxxx" maxLength={50} required></input>
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Contraseña:</span>
-                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.password} onChange={(e) => setUser(prev => ({...prev, password: e.target.value}))} className="casino_input" maxLength={15} required></input>
                         </label>
                         <label className="flex flex-col w-full md:w-[48%] gap-1">
                             <span className="font-semibold">Confirmar contraseña:</span>
-                            <input type='password' value={user.confirm_password} onChange={(e) => setUser(prev => ({...prev, confirm_password: e.target.value}))} className="p-2 outline-none bg-gray-900 focus:border-2 focus:border-[rgb(255,255,255,0.8)] rounded-md" maxLength={15} required></input>
+                            <input type='password' value={user.confirm_password} onChange={(e) => setUser(prev => ({...prev, confirm_password: e.target.value}))} className="casino_input" maxLength={15} required></input>
                         </label>
-                        <p className='text-right w-full text-red-500 text-[0.8rem]'>{invalidData}</p>
+                        <p className='text-right w-full casino_error text-[0.8rem]'>{invalidData}</p>
                         <div className="flex justify-center w-full mt-10 mb-2">
-                            <button onClick={(e) => postUser(e)} className="p-2 w-[90%] md:w-[70%] lg:w-[50%] font-semibold bg-gradient-to-r from-red-700 to-red-400 rounded-md cursor-pointer active:scale-95">Registrarse</button>
+                            <button onClick={(e) => postUser(e)} className="casino_btn w-[90%] md:w-[70%] lg:w-[50%]">Registrarse</button>
                         </div>
                     </form>
-                    <p className="text-white">¿Ya tienes una cuenta? <span className='text-blue-400 hover:underline cursor-pointer'><Link href={'/login'}>Iniciar sesion</Link></span></p> 
+                    <p className="text-white">¿Ya tienes una cuenta? <span className='casino_link cursor-pointer'><Link href={'/login'}>Iniciar sesion</Link></span></p> 
                 </div>
             </div>
         </>
