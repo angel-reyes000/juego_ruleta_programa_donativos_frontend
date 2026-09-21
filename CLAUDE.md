@@ -118,7 +118,7 @@ Aunque el nombre sugiere pagina informativa, actualmente es la vista `MiCuenta`.
 
 Panel admin. Carga juegos con `/api/getGames`, crea con `/api/postGames`, edita con `/api/updateGame`, carga premios con `/api/getPrizes`, crea premio persistente con `/api/postPrize` y elimina con `/api/deletePrize`. Permite agregar premios temporalmente a `game.prize_list` antes de crear el juego. Maneja modales HTML para crear/editar y filtra juegos por texto. `formatDateTimeLocal` convierte fechas de API a `datetime-local`.
 
-Tipos principales: `Game` contiene `prize_list`; `Prize` contiene `name`, `type`, `value`, `round` y `roulette_number`. Rondas validas 1-5 y numeros de ruleta 1-10.
+Al hacer clic en una fila de juego, el modal de edicion carga tambien `/api/getGameWinners?game_id=...` y muestra la tabla de ganadores de todas las rondas (Ronda, Giro, Nombre, Apellido, Numero de celular, Correo). Tipos principales: `Game` contiene `prize_list`; `Prize` contiene `name`, `type`, `value`, `round` y `roulette_number`. Rondas validas 1-5 y numeros de ruleta 1-10.
 
 ### `app/ruleta/page.tsx` (`/ruleta`)
 
@@ -141,14 +141,14 @@ Funciones y flujo actual:
 
 1. `getCurrentGame` llama `/api/getCurrentGame`, guarda el juego y lanza las cargas iniciales.
 2. `getCurrentRoundGame(game_id, makePostSpin, updateRoundSpins)` llama `/api/getCurrentRoundGame`. Si `makePostSpin` es verdadero llama `postSpin` y luego vuelve a sincronizar.
-3. `postSpin(dataRound)` llama `/api/postSpin` con `round_id` y `dataRound.total_current_spins`, elimina el ticket ganador con `/api/deleteTicket`, obtiene premios, llama `postWinningTickets` y emite `spin`.
-4. `postWinningTickets` llama `/api/postWinningTickets` y despues emite `latestResults` con la respuesta recibida.
+3. `postSpin(dataRound)` llama `/api/postSpin` con `round_id`. El backend decide la ronda, elige el numero, elimina/renumera tickets, guarda `winning_tickets` y `game_winners` y devuelve `winning_number`, `round_number`, `spin_number`, `prize_name` y `winners`. Luego el cliente obtiene premios y emite `spin(winning_number, dataRoulette, winners)`.
+4. 10.5 s despues (al terminar la animacion) el cliente admin emite `latestResults` con los datos de la respuesta de `postSpin`.
 5. El listener `latestResults` agrega el resultado a `stateWinningTickets`.
 6. `getWinningTickets` reemplaza el estado con la respuesta de `/api/getWinningTickets`, protegido por `refWinningTicketsVersion` contra respuestas REST antiguas.
 
 Contrato de socket observado:
 
-- `spin(winning_number, dataRoulette)`: todos animan la ruleta.
+- `spin(winning_number, dataRoulette, winners)`: todos animan la ruleta; al detenerse (`onRest`) se muestra la animacion de numero ganador con premio y ganadores (rondas 4-5) y se recargan los tickets propios.
 - `prizesUpdated(dataRoulette)`: sincroniza segmentos.
 - `updateRoundSpins(number, spins, total_current_spins, dataRoulette)`: sincroniza contador y segmentos.
 - `latestResults(winningNumber, game_id, round_number, spin_number, prize_name)`: agrega ultimo resultado.
@@ -158,7 +158,8 @@ Advertencias al modificar la ruleta:
 
 - No confundir `spins` (limite de giros de la ronda) con `total_current_spins` (contador actual).
 - Verificar con el backend si `postSpin` espera el contador anterior o el siguiente; el archivo actual envia el valor recibido en `dataRound`.
-- Evitar dos solicitudes `postSpin` concurrentes: el boton no tiene actualmente un bloqueo de frontend.
+- El boton `Girar` se deshabilita mientras hay una solicitud en curso (`spinBusy`) y el servidor serializa los giros; `total_current_spins` es el contador **dentro de la ronda actual** y el juego termina cuando la ronda 5 completa sus giros (`finished`).
+- Tickets: `getTickets` devuelve todos con `status`; la UI cuenta los `active` y muestra los eliminados.
 - `socket.emit("latestResults", ...)` desde el cliente duplica la responsabilidad del servidor; cualquier cambio debe coordinarse con el backend.
 - `stateWinningTickets.sort(...)` muta el array de estado durante el render y las keys usan un contador global `IndexWinningTicket`; es una zona de riesgo para resultados obsoletos o remounts incorrectos.
 - Hay imports y constantes sin uso (`FaCircle`, `FaPlus`, `messageType`, `segments`, `winningNumber`, `currentTickets`, entre otros). No limpiar automaticamente si la tarea no lo requiere.
@@ -218,6 +219,7 @@ Todos los endpoints se construyen con `${NEXT_PUBLIC_BACKEND_API}/api/...`. El t
 | Configuracion | GET | `/getPrizes?gameId=...` |
 | Configuracion | POST | `/postPrize` |
 | Configuracion | DELETE | `/deletePrize` |
+| Configuracion | GET | `/getGameWinners?game_id=...` |
 | Ruleta | GET | `/getCurrentGame` |
 | Ruleta | GET | `/getCurrentRoundGame?game_id=...` |
 | Ruleta | GET | `/getTickets?game_id=...` |
@@ -225,9 +227,7 @@ Todos los endpoints se construyen con `${NEXT_PUBLIC_BACKEND_API}/api/...`. El t
 | Ruleta | GET | `/getUsersWithDonation?game_id=...` |
 | Ruleta | GET | `/getWinningTickets?game_id=...` |
 | Ruleta | POST | `/postSpin` |
-| Ruleta | DELETE | `/deleteTicket` |
 | Ruleta | GET | `/getPrizes?gameId=...` |
-| Ruleta | POST | `/postWinningTickets` |
 
 Antes de cambiar un payload, confirmar las propiedades usadas por el backend. En el frontend aparecen `game_id`, `round_id`, `total_current_spins`, `winning_number`, `dataRound`, `dataSpin`, `dataPrizes`, `prize_name`, `round_number` y `spin_number`.
 
@@ -265,6 +265,6 @@ Para un cambio de UI: ejecutar lint y revisar la ruta en desktop y movil.
 
 Para un cambio de API: comprobar metodo, endpoint, headers, payload, status esperado y forma de respuesta; revisar Network del navegador.
 
-Para un cambio de ruleta/socket: probar dos clientes conectados, un giro por ronda, cambio de ronda, reconexion y orden de `postSpin`, `postWinningTickets`, `spin`, `updateRoundSpins` y `latestResults`.
+Para un cambio de ruleta/socket: probar dos clientes conectados, un giro por ronda, cambio de ronda, reconexion y orden de `postSpin`, `spin`, `updateRoundSpins` y `latestResults`.
 
 Para un cambio de autenticacion/pago: probar expiracion del token, errores del backend, cancelacion de Stripe y no exponer credenciales.
