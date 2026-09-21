@@ -120,7 +120,7 @@ Aunque el nombre sugiere pagina informativa, actualmente es la vista `MiCuenta`.
 
 Panel admin. Carga juegos con `/api/getGames`, crea con `/api/postGames`, edita con `/api/updateGame`, carga premios con `/api/getPrizes`, crea premio persistente con `/api/postPrize` y elimina con `/api/deletePrize`. Permite agregar premios temporalmente a `game.prize_list` antes de crear el juego. Maneja modales HTML para crear/editar y filtra juegos por texto. `formatDateTimeLocal` convierte fechas de API a `datetime-local`.
 
-Al hacer clic en una fila de juego, el modal de edicion carga tambien `/api/getGameWinners?game_id=...` y muestra la tabla de ganadores de todas las rondas (Ronda, Giro, Nombre, Apellido, Numero de celular, Correo). Tipos principales: `Game` contiene `prize_list`; `Prize` contiene `name`, `type`, `value`, `round` y `roulette_number`. Rondas validas 1-5 y numeros de ruleta 1-10.
+Al hacer clic en una fila de juego, el modal de edicion carga tambien `/api/getGameWinners?game_id=...` y muestra la tabla de ganadores de todas las rondas (Ronda, Giro, Nombre, Apellido, Numero de celular, Correo, Premio). Tipos principales: `Game` contiene `prize_list`; `Prize` contiene `name`, `type`, `value`, `round` y `roulette_number`. Rondas validas 1-5 y numeros de ruleta 1-10.
 
 ### `app/ruleta/page.tsx` (`/ruleta`)
 

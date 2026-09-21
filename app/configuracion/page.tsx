@@ -612,12 +612,13 @@ export default function Configuracion () {
                                     <th>Apellido</th>
                                     <th>Numero</th>
                                     <th>Correo</th>
+                                    <th>Premio</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {winnerList.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className='py-3 text-white/60'>Aun no hay ganadores.</td>
+                                        <td colSpan={7} className='py-3 text-white/60'>Aun no hay ganadores.</td>
                                     </tr>
                                 ) : winnerList.map((obj, index) => (
                                     <tr key={`${obj.round_number}-${obj.spin_number}-${obj.user_id}-${index}`}>
@@ -627,6 +628,7 @@ export default function Configuracion () {
                                         <td>{obj.last_name}</td>
                                         <td>{obj.phone_number}</td>
                                         <td>{obj.email}</td>
+                                        <td>{obj.prize_name ?? 'Sin premio'}</td>
                                     </tr>
                                 ))}
                             </tbody>
