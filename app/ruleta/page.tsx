@@ -1,13 +1,12 @@
 "use client"
 
+import MiniRoulette from '@/components/miniRoulette';
 import { Wheel } from 'spin-wheel';
 import { io } from 'socket.io-client';
 import NavBar from "@/components/navbar";
 import { useEffect, useState, useRef } from "react";
 import { FaArrowAltCircleRight, FaCircle, FaTicketAlt, FaPlus } from "react-icons/fa";
-import mini_ruleta from '@/public/images/mini_ruleta.png';
 import '@/app/styles.css';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MessageFloating from '@/components/messageFloating';
 import { messageFloating, messageType } from '@/components/messageFloating';
@@ -117,6 +116,18 @@ const initialRouletteData: RouletteData = {
 
 let IndexWinningTicket = 0;
 
+// Aspecto casino de la ruleta: casillas rojo/negro, texto y bordes dorados.
+const casinoWheelStyle = {
+    itemBackgroundColors: ['#d50032', '#15000c'],
+    itemLabelColors: ['#ffd23f'],
+    itemLabelStrokeColor: 'rgba(0,0,0,0.6)',
+    itemLabelStrokeWidth: 2,
+    lineColor: '#ffd23f',
+    lineWidth: 2,
+    borderColor: '#ffd23f',
+    borderWidth: 6,
+};
+
 export default function Ruleta () {
     const [currentGameData, setCurrentGameData] = useState<GameData>();
     const [rounds, setRounds] = useState<RoundsData[]>();
@@ -198,7 +209,7 @@ export default function Ruleta () {
         };
 
         refRoulette.current?.remove();
-        refRoulette.current = new Wheel(refDivRoulette.current, dataRouletteWithRestHook);
+        refRoulette.current = new Wheel(refDivRoulette.current, { ...casinoWheelStyle, ...dataRouletteWithRestHook });
     }
 
     useEffect(() => {
@@ -707,13 +718,13 @@ export default function Ruleta () {
     return (
         <>
             <NavBar />
-            <dialog ref={refModal} className='backdrop:bg-black/80 bg-[rgba(0,0,0,0)] border-1 border-red-700 m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
-                <div className='flex flex-col bg-[rgba(50,0,0,0.9)] p-5 gap-5'>
+            <dialog ref={refModal} className='casino_modal m-auto text-center w-[90%] sm:w-[60%] md:w-[45%] lg:w-[30%]'>
+                <div className='flex flex-col p-5 gap-5'>
                     <div className='flex justify-start items-center w-full'>
-                        <p onClick={() => router.back()} className='text-white cursor-pointer active:scale-90 hover:underline hover:text-blue-400'>{'< '}regresar</p>
+                        <p onClick={() => router.back()} className='casino_link cursor-pointer active:scale-90'>{'< '}regresar</p>
                     </div>
                     <div className='flex justify-center w-full'>
-                        <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                        <MiniRoulette size={100} className='animation_mini_ruleta' />
                     </div>
                     <p className='font-semibold text-white text-[1.1rem] m-0 p-0'>
                         No hay juegos activos, regresa mas tarde!.
@@ -726,8 +737,8 @@ export default function Ruleta () {
                         <span key={i} className='casino_coin' style={{ left: `${(i * 4.3) % 100}%`, animationDelay: `${(i % 8) * 0.25}s`, animationDuration: `${2.5 + (i % 5) * 0.4}s` }} />
                     ))}
                     <div className='casino_frame flex flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-[rgb(60,0,0)] px-8 py-10 sm:px-16 text-center'>
-                        <p className='casino_title text-2xl sm:text-4xl font-extrabold tracking-widest text-yellow-300'>¡NÚMERO GANADOR!</p>
-                        <div className='casino_number flex justify-center items-center w-40 h-40 sm:w-56 sm:h-56 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 text-7xl sm:text-9xl font-black text-white'>
+                        <p className='casino_title casino_marquee text-2xl sm:text-4xl tracking-widest text-yellow-300'>¡NÚMERO GANADOR!</p>
+                        <div className='casino_number flex justify-center items-center w-40 h-40 sm:w-56 sm:h-56 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 casino_marquee text-7xl sm:text-9xl text-white'>
                             {winnerCelebration.number}
                         </div>
                         {winnerCelebration.winners.length > 0 ? (
@@ -745,27 +756,32 @@ export default function Ruleta () {
                     </div>
                 </div>
             ) : null}
-            <div className=" flex flex-col bg-[rgb(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-20">
+            <div className="flex flex-col h-auto min-h-dvh py-5 px-4 sm:px-10 gap-16">
                 {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
                 <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
-                    <div className='flex justify-between w-full'>
-                        <h1 data-aos='zoom-in' className="text-4xl font-bold w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
-                        <div className='flex flex-col text-end gap-1'>
+                    <div className='flex flex-col sm:flex-row justify-between w-full gap-4'>
+                        <h1 data-aos='zoom-in' className="casino_heading text-3xl sm:text-5xl w-full md:w-[70%] lg:w-[50%]">{currentGameData?.title}</h1>
+                        <div className='flex flex-col text-start sm:text-end gap-1'>
                             <p className='text-[0.9rem]'>Fecha de finalizacion del juego: <span className='font-semibold'>{`${currentGameData?.end_datetime.split("T")[0]} - ${currentGameData?.end_datetime.split("T")[1].slice(0, 5)}hrs`}</span></p>
                             <p className="flex justify-end items-center font-bold text-2xl gap-1">Tus tickets: {currentTotalTickets}<FaTicketAlt className="inline rotate-125"/></p>
                             {eliminatedTickets > 0 ? <p className='text-sm text-red-400'>{`Eliminados: ${eliminatedTickets}`}</p> : null}
                             {currentTickets.length > 0 && currentTotalTickets === 0 ? <p className='text-sm text-red-400'>Ya no tienes tickets en juego.</p> : null}
                         </div>                        
                     </div>
-                    <div className="flex flex-row justify-around items-center w-full gap-5">
-                        <p className='text-lg font-semibold'>{`Ronda: ${currentRoundData?.number}/5`}</p>
-                        <p className='text-lg font-semibold'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
-                        <p className='text-lg font-semibold'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
+                    <div className="flex flex-row flex-wrap justify-center sm:justify-around items-center w-full gap-3 sm:gap-5">
+                        <p className='casino_chip text-sm sm:text-lg'>{`Ronda: ${currentRoundData?.number}/5`}</p>
+                        <p className='casino_chip text-sm sm:text-lg'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
+                        <p className='casino_chip text-sm sm:text-lg'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
                     </div>
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <div className='flex flex-col justify-center items-center gap-5'>
-                        <div data-aos='zoom-in' className='w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[600px] md:h-[600px] pointer-events-none' ref={refDivRoulette} />
+                        <div data-aos='zoom-in' className='casino_wheel_wrap'>
+                            <div className='casino_wheel_pointer' />
+                            <div className='casino_wheel_frame'>
+                                <div className='w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] md:w-[520px] md:h-[520px] pointer-events-none' ref={refDivRoulette} />
+                            </div>
+                        </div>
                         {role === 'admin' ? (
                             <button disabled={spinBusy || finished} onClick={ async () => {
                                 if (spinBusy || refIsSpinning.current) {
@@ -778,22 +794,22 @@ export default function Ruleta () {
                                     setSpinBusy(false);
                                 }
                             }} 
-                                className={'w-[50%] rounded-xl text-xl font-bold text-black bg-linear-to-r from-[rgb(249,255,86)] to-[rgb(252,255,168)] shadow-[0px_0px_20px_yellow] py-3 px-2 cursor-pointer active:scale-95' + (finished ? ' hidden ' : ' block ') + (spinBusy ? ' opacity-50 cursor-not-allowed ' : '')}>
+                                className={'casino_btn casino_btn_pulse w-[70%] sm:w-[50%] text-xl' + (finished ? ' casino_hidden ' : '') + (spinBusy ? ' opacity-60 cursor-not-allowed ' : '')}>
                                     Girar
                             </button>  
                         ) : null}    
                         {finished ? (
-                            <p className='text-xl text-red-600 font-bold'>Juego finalizado.</p>
+                            <p className='casino_marquee casino_neon_text text-2xl'>Juego finalizado.</p>
                         ) : null}                                            
                     </div>
                     <div className="flex flex-col justify-center items-center gap-5">
-                        <div data-aos='flip-right' className="flex flex-col bg-[rgba(100,0,0,0.5)] shadow-[0px_0px_30px_red] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
-                            <h1 className="font-bold text-xl">Progreso del sorteo</h1>
-                            <div className="flex flex-col gap-5 overflow-y-scroll px-3">
+                        <div data-aos='flip-right' className="flex flex-col casino_card w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] h-auto px-5 py-5 text-white gap-3">
+                            <h1 className="casino_heading text-2xl">Progreso del sorteo</h1>
+                            <div className="flex flex-col gap-5 overflow-y-scroll casino_scroll px-3">
                                 {rounds?.map((round: RoundsData) => (
-                                    <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-3 font-semibold gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
+                                    <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-2 border-casino-gold/40 font-semibold gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
                                         <div className='flex items-center gap-1'>
-                                            <p className='px-4 py-1 rounded-4xl bg-yellow-500 text-2xl text-center'>{round.number}</p>
+                                            <p className={'casino_round_dot' + (currentRoundData.number === round.number ? ' casino_round_active' : '')}>{round.number}</p>
                                             <p>Ronda</p>
                                         </div>
                                         {round.number === 1 ? <p className='flex items-center gap-2'>5000<FaArrowAltCircleRight />2500</p> : null}
@@ -805,11 +821,11 @@ export default function Ruleta () {
                                 ))}
                             </div>
                         </div>
-                        <div data-aos='flip-left' className="flex flex-col bg-[rgba(100,0,0,0.5)] shadow-[0px_0px_30px_red] w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] border-2 border-red-500 h-auto px-5 py-5 rounded-lg text-white gap-3">
-                            <h1 className="font-bold text-xl">Ultimos resultados</h1>
-                            <div className="flex flex-col gap-5 overflow-y-auto px-3">
+                        <div data-aos='flip-left' className="flex flex-col casino_card w-full sm:w-[80%] lg:w-[100%] max-h-[300px] min-h-[300px] h-auto px-5 py-5 text-white gap-3">
+                            <h1 className="casino_heading text-2xl">Ultimos resultados</h1>
+                            <div className="flex flex-col gap-5 overflow-y-auto casino_scroll px-3">
                                 {stateWinningTickets?.sort((a, b) => b.spin_number - a.spin_number).sort((a, b) => b.round_number - a.round_number).map((obj: WinningTickets, index: number) => (
-                                   <div key={IndexWinningTicket++} className="flex justify-between text-lg text-center border-b-1 gap-2">
+                                   <div key={IndexWinningTicket++} className="flex flex-wrap justify-between text-lg text-center border-b border-casino-gold/30 gap-2">
                                         <p>Ronda {obj.round_number}</p>
                                         <p>Giro {obj.spin_number}</p>                                        
                                         <p className="flex items-center gap-2">Numero {obj.winning_number} <FaArrowAltCircleRight />{obj.prize_name ?? "Sin premio."}</p>
@@ -820,30 +836,30 @@ export default function Ruleta () {
                     </div>
                 </div>
                 <div className='flex flex-col text-white gap-10'>
-                    <h2 className='text-4xl font-bold'>¿Como funciona?</h2>
-                    <div className='flex flex-col md:flex-row text-center'>
-                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 md:border-b-0 px-6 py-4 md:py-2 gap-2'>
-                            <h3 className='text-2xl font-semibold'>Ronda 1</h3> 
+                    <h2 className='casino_heading text-3xl sm:text-5xl'>¿Como funciona?</h2>
+                    <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center'>
+                        <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
+                            <h3 className='casino_heading text-2xl'>Ronda 1</h3> 
                             <p>La ruleta gira 5 veces y los numeros seleccionados pasan a la ronda 2.</p>
                             <p>(5,000 donadores para 2,500 donadores)</p>
                         </div> 
-                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
-                            <h3 className='text-2xl font-semibold'>Ronda 2</h3> 
+                        <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
+                            <h3 className='casino_heading text-2xl'>Ronda 2</h3> 
                             <p>La ruleta gira 4 veces, los números seleccionados pasan a la Ronda 3.</p>
                             <p>(2,500 donadores para 1,000 donadores)</p>
                         </div> 
-                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
-                            <h3 className='text-2xl font-semibold'>Ronda 3</h3> 
+                        <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
+                            <h3 className='casino_heading text-2xl'>Ronda 3</h3> 
                             <p>La ruleta gira 1 sola vez, el número ganador pasa a la ronda 4</p>
                             <p>(1,000 donadores para 100 donadores)</p>
                         </div> 
-                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
-                            <h3 className='text-2xl font-semibold'>Ronda 4</h3> 
+                        <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
+                            <h3 className='casino_heading text-2xl'>Ronda 4</h3> 
                             <p>La ruleta gira 1 solamente una vez, el número ganador pasa a la Ronda 5 y gana premio.</p>
                             <p>(100 donadores para 10 donadores)</p>
                         </div> 
-                        <div data-aos='fade-right' className='flex flex-col border-b-2 md:border-r-3 md:border-b-0 px-6 py-2 gap-2'>
-                            <h3 className='text-2xl font-semibold'>Ronda 5</h3> 
+                        <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
+                            <h3 className='casino_heading text-2xl'>Ronda 5</h3> 
                             <p>La ruleta gira 10 veces, otorgando premio en las 10 ocasiones.</p>
                             <p>(10 donadores para 10 donadores)</p>
                         </div> 

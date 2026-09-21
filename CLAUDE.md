@@ -39,10 +39,10 @@ Este archivo es el mapa operativo del repositorio. Leerlo antes de modificar cod
 |-- .gitignore                 Ignora dependencias, builds, env y logs.
 |-- .env                       Variables locales: backend y Stripe; no documentar valores.
 |-- app/
-|   |-- layout.tsx             Layout raiz, metadata y fuentes Geist.
+|   |-- layout.tsx             Layout raiz, metadata, fuentes (Cinzel, Poppins, Bungee) y fondo casino.
 |   |-- page.tsx               Inicio, sesion/token y llamada a iniciar donacion.
-|   |-- globals.css            Importa Tailwind CSS.
-|   |-- styles.css             Animaciones CSS compartidas.
+|   |-- globals.css            Importa Tailwind y define la paleta (@theme) y las fuentes casino.
+|   |-- styles.css             Sistema de diseno casino (CSS puro) y animaciones compartidas.
 |   |-- login/page.tsx         Login y almacenamiento del JWT.
 |   |-- signup/page.tsx        Registro de usuario.
 |   |-- donar/page.tsx         Formulario de pago Stripe.
@@ -54,6 +54,8 @@ Este archivo es el mapa operativo del repositorio. Leerlo antes de modificar cod
 |   |-- navbar.tsx             Navegacion, rol admin y modal de sesion expirada.
 |   |-- messageFloating.tsx    Alertas flotantes tipo good/bad/info.
 |   |-- donationCelebration.tsx Pantalla de celebracion; actualmente no se usa.
+|   |-- casinoBackground.tsx   Capa fija decorativa con palos de cartas flotando (server component).
+|   |-- miniRoulette.tsx       Mini ruleta SVG (replica de la ruleta del juego) usada en inicio, login, registro y modales.
 |-- public/
 |   |-- images/                Imagenes locales usadas por las paginas.
 |   |-- *.svg                  Assets iniciales de create-next-app no usados como logica.
@@ -179,22 +181,34 @@ Exporta `messageType = 'good' | 'bad' | 'info'` e interfaz `messageFloating { sh
 
 Pantalla visual de agradecimiento con callback `setCelebration`. Usa emoji, fondo radial y enlace visual de regreso. Actualmente la importacion/uso en donacion esta comentada.
 
+## Sistema de diseno casino
+
+Toda la app comparte un tema casino (colores brillantes, luces, neon, tipografia de marquesina). Tailwind se usa para layout, espaciado y responsive; los efectos complejos viven en CSS puro en `app/styles.css`.
+
+- Paleta: definida en `app/globals.css` con `@theme static` (utilidades `text-casino-gold`, `bg-casino-red`, `border-casino-gold/60`, etc.: ink, wine, red, red-deep, gold, amber, pink, cyan, green, panel).
+- Fuentes (cargadas en `layout.tsx` con `next/font/google`): `font-display` = Cinzel (titulos), `font-body` = Poppins (texto, por defecto en `body`), `font-marquee` = Bungee (botones, fichas, numeros).
+- Fondo: `.casino_body` (degradados + destellos) y `components/casinoBackground.tsx` (palos de cartas flotando). No poner fondos opacos de pagina; dejar ver el fondo global.
+- Clases reutilizables (CSS puro): `casino_heading` (titulo dorado animado), `casino_neon_text`, `casino_marquee`, `casino_card` (panel con borde degradado y brillo), `casino_lights` (focos parpadeantes; requiere contenedor relativo), `casino_modal` (para `<dialog>`), `casino_btn` + `casino_btn_red`/`casino_btn_ghost`/`casino_btn_pulse`, `casino_icon_btn`, `casino_input`, `casino_underline` (campos Stripe), `casino_link`, `casino_error`, `casino_table`, `casino_scroll`, `casino_chip`, `casino_round_dot`, `casino_wheel_wrap`/`casino_wheel_frame`/`casino_wheel_pointer` (ruleta), `casino_credit_card`, `casino_toast_*`, `casino_navbar`, `casino_nav_link`.
+- Los estilos de `styles.css` no estan en una capa de Tailwind, asi que ganan a las utilidades: no combinar clases `casino_*` con utilidades que definan la misma propiedad (padding en `casino_btn`, `hidden` en elementos con `display` propio). Para ocultar usar `casino_hidden`.
+- Colores de la ruleta (spin-wheel): `casinoWheelStyle` en `app/ruleta/page.tsx` (casillas rojo/negro, texto y bordes dorados).
+- `prefers-reduced-motion` reduce las animaciones (regla en `globals.css`).
+
 ## Estilos y recursos
 
 ### `app/styles.css`
 
-Contiene las animaciones `animation_mini_ruleta`, `main_background` y `messageFloating`, con keyframes para rotacion, fondo y entrada lateral.
+Contiene las animaciones originales (`animation_mini_ruleta`, `main_background`, `messageFloating`), la animacion del numero ganador (`casino_overlay`, `casino_frame`, `casino_number`, `casino_coin`) y el sistema de diseno casino descrito arriba.
 
 ### `app/globals.css`
 
-Solo importa Tailwind v4.
+Importa Tailwind v4 y define la paleta y fuentes casino (ver "Sistema de diseno casino").
 
 ### `public/images/`
 
 - `fondo_incio.jpg`: fondo de la pagina inicial.
 - `fondo_signup.jpg`: fondo de login y registro.
 - `5_y_Gana-removebg-preview.png`: logo.
-- `mini_ruleta.png`: ruleta pequena usada en modales y formularios.
+- `mini_ruleta.png`: imagen antigua de la ruleta pequena; ya no se usa (fue reemplazada por `components/miniRoulette.tsx`).
 - `chip_credit_card.jpg`: chip decorativo de tarjeta.
 - `personas_ayudando.jpg`: imagen de apoyo en donaciones.
 
@@ -241,8 +255,7 @@ Antes de cambiar un payload, confirmar las propiedades usadas por el backend. En
 
 ## Problemas conocidos que una IA debe confirmar antes de corregir
 
-- README y metadata aun son los valores iniciales de create-next-app.
-- `layout.tsx` declara `lang="en"`, pero la UI esta en espanol.
+- El README sigue siendo el inicial de create-next-app.
 - Hay varios `any`, imports no usados y mensajes con faltas ortograficas; no hacer una limpieza amplia junto con un cambio funcional.
 - Algunas referencias a clases Tailwind tienen posibles typos (`sm;w`, `border-b-3`, etc.); comprobar si son intencionales antes de modificar estilos.
 - Varias llamadas `fetch` no comprueban errores de red o JSON invalido de forma uniforme.

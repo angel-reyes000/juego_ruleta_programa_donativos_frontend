@@ -1,2 +1,46 @@
 @import "tailwindcss";
 
+/* Paleta casino: disponible como utilidades de Tailwind (bg-casino-gold, text-casino-pink, ...) */
+@theme static {
+    --color-casino-ink: #12000a;
+    --color-casino-wine: #4a0020;
+    --color-casino-red: #ff1744;
+    --color-casino-red-deep: #8a0019;
+    --color-casino-gold: #ffd23f;
+    --color-casino-amber: #ff9f1c;
+    --color-casino-pink: #ff2bd6;
+    --color-casino-cyan: #00e5ff;
+    --color-casino-green: #00e676;
+    --color-casino-panel: rgba(28, 0, 18, 0.82);
+}
+
+/* Fuentes: font-display (títulos), font-body (texto), font-marquee (letrero) */
+@theme inline {
+    --font-display: var(--font-cinzel), Georgia, serif;
+    --font-body: var(--font-poppins), system-ui, sans-serif;
+    --font-marquee: var(--font-bungee), Impact, sans-serif;
+}
+
+html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+    color: #fff;
+}
+
+::selection {
+    background: var(--color-casino-pink);
+    color: #fff;
+}
+
+/* Respeta a quien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

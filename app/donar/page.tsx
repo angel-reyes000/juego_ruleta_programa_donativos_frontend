@@ -1,5 +1,6 @@
 "use client"
 
+import MiniRoulette from '@/components/miniRoulette';
 import NavBar from "@/components/navbar";
 import MessageFloating from "@/components/messageFloating";
 import { messageFloating } from "@/components/messageFloating";
@@ -23,7 +24,6 @@ import {
     useStripe,
 } from "@stripe/react-stripe-js";
 import DonationCelebration from "@/components/donationCelebration";
-import mini_ruleta from '@/public/images/mini_ruleta.png';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -192,31 +192,31 @@ function FormPayment () {
         <>
             {showMessage ? <MessageFloating show={showMessage.show} messages={showMessage.messages} type={showMessage.type} /> : null}
             {/*celebration ? <DonationCelebration setCelebration={setCelebration} /> : null*/}
-            <section className="flex justify-center h-full hidden md:flex">
-                <Image src={personas_ayudando} className="object-cover" alt="personas ayudando" />
+            <section className="flex justify-center items-center p-4 h-full hidden md:flex">
+                <Image src={personas_ayudando} className="object-cover rounded-2xl border-2 border-casino-gold shadow-[0_0_30px_rgba(255,210,63,0.6)]" alt="personas ayudando" />
             </section>
             <section className="h-full">
-                <dialog ref={refModal} className='backdrop:bg-black/80 bg-[rgba(0,0,0,0)] border-1 border-red-700 m-auto rounded-md text-center w-[70%] sm;w-[50%] md:w-[40%] lg:w-[30%]'>
-                    <div className='flex flex-col items-center text-white bg-[rgba(50,0,0,0.9)] p-5 gap-5'>
+                <dialog ref={refModal} className='casino_modal m-auto text-center w-[90%] sm:w-[60%] md:w-[45%] lg:w-[30%]'>
+                    <div className='flex flex-col items-center text-white p-5 gap-5'>
                         <div className='flex justify-end items-center w-full'>
-                            <FaPlus onClick={() => refModal.current?.close()} className="rotate-45 hover:cursor-pointer" size={20}  />
+                            <FaPlus onClick={() => refModal.current?.close()} className="rotate-45 text-casino-gold hover:cursor-pointer" size={20}  />
                         </div>
                         <div className='flex justify-center w-full'>
-                            <Image src={mini_ruleta} width={100} height={100} className='animation_mini_ruleta' alt='mini ruleta' />
+                            <MiniRoulette size={100} className='animation_mini_ruleta' />
                         </div>
                         <p className='font-semibold text-[1.1rem] m-0 p-0'>
                             Para donar cantidades superiores a $10,000 MXN contactenos. 
                         </p>
-                        <button onClick={() => router.push('/acercaDe')} className='p-2 w-[80%] rounded-md bg-gradient-to-r from-red-500 to-yellow-700 cursor-pointer active:scale-95 text-white'>
+                        <button onClick={() => router.push('/acercaDe')} className='casino_btn casino_btn_red w-[80%]'>
                             Contactar ahora.
                         </button>
                     </div>
                 </dialog>
                 <form onSubmit={(e) => pay(e)} className="flex flex-col items-center h-full w-full p-10 gap-10 text-white">
-                    <div data-aos="zoom-in" className="grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] bg-linear-to-r from-[rgb(90,90,90)] to-[rgb(170,170,170)] w-[80%] sm:w-[60%] md:w-[80%] lg:w-[55%] rounded-xl p-5">
+                    <div data-aos="zoom-in" className="casino_credit_card grid grid-rows-[auto_1fr_1fr] gap-5 min-h-[200px] w-[90%] sm:w-[60%] md:w-[80%] lg:w-[55%] p-5">
                         <div className="flex justify-between">
                             <Image src={chip} height={10} width={50} className="rounded-md" alt="chip tarjeta"/>
-                            <p className="text-xl font-semibold">Tarjeta</p>
+                            <p className="casino_marquee text-xl">Tarjeta</p>
                         </div>
                         <div>
                             <p className="text-[0.9rem] font-semibold">Numero de tarjeta:</p>
@@ -236,9 +236,9 @@ function FormPayment () {
                     <div className="flex flex-col gap-5 w-full">
                         <label className="flex flex-col text-[0.9rem] font-semibold">
                             <div>Nombre y apellido del tarjetahabiente<span className="text-red-500">*</span></div>
-                            <input value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} className="border-b-1 focus:outline-none font-normal" />
+                            <input value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} className="casino_input font-normal" />
                         </label>
-                        <label className="flex flex-col text-[0.9rem] font-semibold border-b-1">
+                        <label className="flex flex-col text-[0.9rem] font-semibold casino_underline">
                             <div>Numero de tarjeta<span className="text-red-500">*</span></div>
                             <CardNumberElement
                                 options={{
@@ -252,7 +252,7 @@ function FormPayment () {
                             />
                         </label>
                         <div className="flex justify-between gap-1">
-                            <label className="flex flex-col text-[0.9rem] font-semibold w-[49%] border-b-1">
+                            <label className="flex flex-col text-[0.9rem] font-semibold w-[49%] casino_underline">
                                 <div>Fecha de vencimiento<span className="text-red-500">*</span></div>
                                 <CardExpiryElement
                                     options={{
@@ -265,7 +265,7 @@ function FormPayment () {
                                     }}
                                 />                                    
                             </label>
-                            <label className="flex flex-col text-[0.9rem] font-semibold w-[49%] border-b-1">
+                            <label className="flex flex-col text-[0.9rem] font-semibold w-[49%] casino_underline">
                                 <div>CVV<span className="text-red-500">*</span></div>
                                 <CardCvcElement
                                     options={{
@@ -283,23 +283,23 @@ function FormPayment () {
                     <label className="flex flex-col text-[0.9rem] font-semibold w-[100%]">
                         <div>Cantidad a donar<span className="text-red-500">*</span></div>
                         <div className="flex gap-1 w-full">
-                            <input value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="border-b-1 w-[150px] focus:outline-none font-normal" />
+                            <input value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="casino_input w-[150px] font-normal" />
                             <p>$ Pesos MXN</p>
                         </div>
-                        <p className="text-[0.8rem] text-gray-400">Solo se aceptan cantidades en múltiplos de $100 (ej. $100, $200, $300).</p>
+                        <p className="text-[0.8rem] text-white/60">Solo se aceptan cantidades en múltiplos de $100 (ej. $100, $200, $300).</p>
                     </label>
-                    {error && <p className="text-red-500 m-0 text-right w-full">{error}</p>}
+                    {error && <p className="casino_error m-0 text-right w-full">{error}</p>}
                     <label className="flex gap-2">
-                        <input checked={checkBox} onChange={(e) => setCheckBox(e.target.checked)} type="checkbox" className="cursor-pointer active:scale-80"/>
+                        <input checked={checkBox} onChange={(e) => setCheckBox(e.target.checked)} type="checkbox" className="cursor-pointer active:scale-80 accent-[#ffd23f] w-5 h-5"/>
                         Acepto terminos y condiciones.                            
                     </label>
                     <div className="flex justify-between w-full">
-                        <Link href={'/'} className="flex items-center justify-center py-2 px-8 rounded-[200px] font-semibold cursor-pointer active:scale-90 hover:underline gap-1">
+                        <Link href={'/'} className="casino_btn casino_btn_ghost">
                             <FaArrowLeft />Regresar
                         </Link>
                         <button type="submit"
                             disabled={!stripe || !elements || loading}
-                            className="flex items-center justify-center py-2 px-8 rounded-[200px] bg-red-900 hover:bg-[rgb(100,0,0)] hover:shadow-[0px_0px_40px_rgb(120,0,0)] shadow-[0px_0px_20px_rgb(200,0,0)] font-semibold cursor-pointer active:scale-90 gap-1">
+                            className="casino_btn casino_btn_red">
                             {loading? "Procesando...": `Donar $${amount} MXN`}
                         </button>
                     </div>
@@ -313,7 +313,7 @@ export default function Donar () {
     return (
         <>
             <NavBar />
-            <main className="grid md:grid-cols-[1fr_1fr] p-2 min-h-dvh max-h-full bg-[rgba(30,0,0)]">
+            <main className="grid md:grid-cols-[1fr_1fr] p-2 min-h-dvh max-h-full">
                 <Elements stripe={stripePromise}>
                     <FormPayment />
                 </Elements>
