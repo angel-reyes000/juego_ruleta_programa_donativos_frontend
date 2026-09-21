@@ -122,6 +122,8 @@ export default function Ruleta () {
     const [role, setRole] = useState<string>();
     const [showMessageFloating, setShowMessageFloating] = useState<boolean>(false);
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
+    // Número ganador que se muestra en la animación estilo casino al terminar el giro.
+    const [winnerCelebration, setWinnerCelebration] = useState<{ number: number, prize: string | null } | null>(null);
 
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
@@ -136,6 +138,9 @@ export default function Ruleta () {
     const refIsSpinning = useRef<boolean>(false);
     // Siempre apunta a los premios más recientes conocidos.
     const refCurrentRouletteData = useRef<RouletteData>(initialRouletteData);
+    // Ganador del giro en curso; se muestra cuando la ruleta se detiene (onRest).
+    const refPendingWinner = useRef<{ number: number, prize: string | null } | null>(null);
+    const refCelebrationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const router = useRouter();
 
@@ -156,6 +161,16 @@ export default function Ruleta () {
             onRest: (event: any) => {
                 refIsSpinning.current = false;
                 originalOnRest?.(event);
+
+                if (refPendingWinner.current) {
+                    setWinnerCelebration(refPendingWinner.current);
+                    refPendingWinner.current = null;
+
+                    if (refCelebrationTimeout.current) {
+                        clearTimeout(refCelebrationTimeout.current);
+                    }
+                    refCelebrationTimeout.current = setTimeout(() => setWinnerCelebration(null), 8000);
+                }
             },
         };
 
@@ -241,6 +256,13 @@ export default function Ruleta () {
                 });
                 return;
             }
+
+            const winningLabel: string = dataRoulette.items[winningItemIndex].label ?? "";
+            const prizeMatch = winningLabel.match(/^\d+\.\s*(.+)$/);
+            refPendingWinner.current = {
+                number: Number(winning_number),
+                prize: prizeMatch ? prizeMatch[1] : null,
+            };
 
             refIsSpinning.current = true;
             refRoulette.current?.spinToItem(
@@ -361,6 +383,9 @@ export default function Ruleta () {
 
         return () => {
             refRoulette.current?.remove();
+            if (refCelebrationTimeout.current) {
+                clearTimeout(refCelebrationTimeout.current);
+            }
             socket.off("spin");
             socket.off("prizesUpdated");
             socket.off("updateRoundSpins");
@@ -739,6 +764,23 @@ export default function Ruleta () {
                     </p>
                 </div>
             </dialog>
+            {winnerCelebration ? (
+                <div onClick={() => setWinnerCelebration(null)} className='casino_overlay fixed inset-0 z-50 flex flex-col justify-center items-center bg-black/85 cursor-pointer px-4 overflow-hidden'>
+                    {Array.from({ length: 24 }, (_, i) => (
+                        <span key={i} className='casino_coin' style={{ left: `${(i * 4.3) % 100}%`, animationDelay: `${(i % 8) * 0.25}s`, animationDuration: `${2.5 + (i % 5) * 0.4}s` }} />
+                    ))}
+                    <div className='casino_frame flex flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-[rgb(60,0,0)] px-8 py-10 sm:px-16 text-center'>
+                        <p className='casino_title text-2xl sm:text-4xl font-extrabold tracking-widest text-yellow-300'>¡NÚMERO GANADOR!</p>
+                        <div className='casino_number flex justify-center items-center w-40 h-40 sm:w-56 sm:h-56 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 text-7xl sm:text-9xl font-black text-white'>
+                            {winnerCelebration.number}
+                        </div>
+                        {winnerCelebration.prize ? (
+                            <p className='text-xl sm:text-3xl font-bold text-yellow-200'>Premio: {winnerCelebration.prize}</p>
+                        ) : null}
+                        <p className='text-sm text-white/60'>Toca para cerrar</p>
+                    </div>
+                </div>
+            ) : null}
             <div className=" flex flex-col bg-[rgb(30,0,0)] h-auto min-h-dvh py-5 px-10 gap-20">
                 {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
                 <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
