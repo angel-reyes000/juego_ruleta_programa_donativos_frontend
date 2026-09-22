@@ -73,6 +73,7 @@ interface TicketData {
     user_id?: number
     game_id?: number
     donation_id?: number
+    ticket_number?: number
 }
 
 interface WinnerInfo {
@@ -149,6 +150,7 @@ export default function Ruleta () {
     const [winnerCelebration, setWinnerCelebration] = useState<Celebration | null>(null);
     const [spinBusy, setSpinBusy] = useState<boolean>(false);
     const [currentTickets, setCurrentTicketsList] = useState<TicketData[]>([]);
+    const [showTicketPanel, setShowTicketPanel] = useState<boolean>(false);
 
     const refDivRoulette = useRef<HTMLDivElement>(null);
     const refRoulette = useRef<any>(null);
@@ -773,6 +775,44 @@ export default function Ruleta () {
                         <p className='casino_chip text-sm sm:text-lg'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
                         <p className='casino_chip text-sm sm:text-lg'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
                     </div>
+                </div>
+                <div className='absolute top-[400px] sm:top-[300px] lg:top-[260px] z-10'>
+                    <button
+                        onClick={() => setShowTicketPanel(prev => !prev)}
+                        className='casino_btn p-2 sm:p-3 rounded-full'
+                        title='Mis tickets'
+                    >
+                        <FaTicketAlt size={28} className='rotate-45 sm:hidden'/>
+                        <FaTicketAlt size={40} className='rotate-45 hidden sm:block'/>
+                    </button>
+                    {showTicketPanel && (
+                        <div className='absolute top-full left-0 mt-2 casino_card p-3 sm:p-4 w-60 flex flex-col gap-2' style={{maxHeight: '16rem', overflowY: 'auto'}}>
+                            <h3 className='casino_heading text-sm sm:text-base'>Mis tickets activos</h3>
+                            {(() => {
+                                const grouped = currentTickets
+                                    .filter(t => t.status !== 'eliminated' && t.ticket_number != null)
+                                    .reduce((acc, t) => {
+                                        const n = t.ticket_number!;
+                                        acc[n] = (acc[n] ?? 0) + 1;
+                                        return acc;
+                                    }, {} as Record<number, number>);
+                                const entries = Object.entries(grouped).sort(([a], [b]) => Number(a) - Number(b));
+                                if (entries.length === 0) {
+                                    return <p className='text-white/60 text-xs sm:text-sm'>Sin tickets activos.</p>;
+                                }
+                                return (
+                                    <table className='casino_table w-full text-xs sm:text-sm'>
+                                        <thead><tr><th>Número</th><th>Cantidad</th></tr></thead>
+                                        <tbody>
+                                            {entries.map(([num, count]) => (
+                                                <tr key={num}><td>{num}</td><td>{count}</td></tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                );
+                            })()}
+                        </div>
+                    )}
                 </div>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] gap-10">
                     <div className='flex flex-col justify-center items-center gap-5'>
