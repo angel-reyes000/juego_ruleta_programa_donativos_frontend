@@ -31,7 +31,7 @@ const segments = {
     onRest: (event: any) => {
         console.log(event.currentIndex)
     },
-    itemLabelFontSizeMax: 20,
+    itemLabelFontSizeMax: 32,
 }
 
 interface GameData {
@@ -112,7 +112,7 @@ const initialRouletteData: RouletteData = {
     onRest: (event: any) => {
         console.log(event.currentIndex);
     },
-    itemLabelFontSizeMax: 20,
+    itemLabelFontSizeMax: 32,
 };
 
 let IndexWinningTicket = 0;
@@ -707,7 +707,7 @@ export default function Ruleta () {
                 onRest: (event: any) => {
                     console.log(event.currentIndex)
                 },
-                itemLabelFontSizeMax: 20,
+                itemLabelFontSizeMax: 32,
             }
 
             return { dataRoulette, dataPrizes }
