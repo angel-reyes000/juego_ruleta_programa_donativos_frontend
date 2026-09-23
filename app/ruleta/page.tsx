@@ -117,9 +117,11 @@ const initialRouletteData: RouletteData = {
 
 let IndexWinningTicket = 0;
 
-// Duración del conteo de tickets extra y tiempo total que se muestra la animación.
-const EXTRA_TICKETS_COUNT_MS = 4000;
-const EXTRA_TICKETS_SHOW_MS = 7000;
+// Tiempos de la animación de tickets bonus: conteo en el centro, vuelo hacia "Mis tickets" y duración total.
+const EXTRA_TICKETS_COUNT_MS = 2500;
+const EXTRA_TICKETS_FLY_START_MS = 3200;
+const EXTRA_TICKETS_FLY_MS = 1800;
+const EXTRA_TICKETS_SHOW_MS = EXTRA_TICKETS_FLY_START_MS + EXTRA_TICKETS_FLY_MS + 200;
 
 // Aspecto casino de la ruleta: casillas rojo/negro, texto y bordes dorados.
 const casinoWheelStyle = {
@@ -153,7 +155,9 @@ export default function Ruleta () {
     // Número ganador que se muestra en la animación estilo casino al terminar el giro.
     const [winnerCelebration, setWinnerCelebration] = useState<Celebration | null>(null);
     // Animación de tickets extra repartidos al iniciar el sorteo (current = extras mostrados, total = tickets del juego).
-    const [extraTicketsAnim, setExtraTicketsAnim] = useState<{ added: number, current: number, total: number } | null>(null);
+    // phase 'count': recuadro central contando; 'fly': los tickets (mine = los del usuario) vuelan a "Mis tickets" (dx, dy).
+    const [extraTicketsAnim, setExtraTicketsAnim] = useState<{ added: number, current: number, phase: 'count' | 'fly', mine: number, dx: number, dy: number } | null>(null);
+    const [ticketsPulse, setTicketsPulse] = useState<boolean>(false);
     const [spinBusy, setSpinBusy] = useState<boolean>(false);
     const [currentTickets, setCurrentTicketsList] = useState<TicketData[]>([]);
     const [showTicketPanel, setShowTicketPanel] = useState<boolean>(false);
@@ -175,7 +179,11 @@ export default function Ruleta () {
     const refPendingWinner = useRef<Celebration | null>(null);
     const refUserId = useRef<number | undefined>(undefined);
     const refExtraInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-    const refExtraTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const refExtraTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+    // Boton "Mis tickets": destino de la animacion de tickets bonus.
+    const refTicketsButton = useRef<HTMLDivElement>(null);
+    // Tickets activos del usuario ya mostrados en pantalla.
+    const refTicketsCount = useRef<number>(0);
     const refCelebrationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const router = useRouter();
@@ -279,21 +287,23 @@ export default function Ruleta () {
     useEffect(() => {
         const token = localStorage.getItem('token');
 
-        // Animación de tickets extra: el total sube en tiempo real de "before" a "after".
-        socket.on("extraTickets", (added: number, before: number, after: number) => {
+        // Animación de tickets bonus: el recuadro cuenta los tickets añadidos en el centro y luego
+        // los tickets vuelan hasta "Mis tickets", donde recién se actualiza el contador del usuario.
+        socket.on("extraTickets", async (added: number) => {
             if (!(added > 0)) return;
 
             if (refExtraInterval.current) clearInterval(refExtraInterval.current);
-            if (refExtraTimeout.current) clearTimeout(refExtraTimeout.current);
+            refExtraTimeouts.current.forEach(clearTimeout);
+            refExtraTimeouts.current = [];
 
-            const steps = Math.min(added, 80);
+            const steps = Math.min(added, 60);
             let step = 0;
-            setExtraTicketsAnim({ added, current: 0, total: before });
+            setExtraTicketsAnim({ added, current: 0, phase: 'count', mine: 0, dx: 0, dy: 0 });
 
             refExtraInterval.current = setInterval(() => {
                 step += 1;
                 const done = Math.round((added * step) / steps);
-                setExtraTicketsAnim({ added, current: done, total: before + done });
+                setExtraTicketsAnim((prev) => prev ? { ...prev, current: done } : prev);
 
                 if (step >= steps && refExtraInterval.current) {
                     clearInterval(refExtraInterval.current);
@@ -301,12 +311,27 @@ export default function Ruleta () {
                 }
             }, EXTRA_TICKETS_COUNT_MS / steps);
 
-            refExtraTimeout.current = setTimeout(() => setExtraTicketsAnim(null), EXTRA_TICKETS_SHOW_MS);
+            // Cuántos tickets recibió este usuario (no se muestran hasta que lleguen a "Mis tickets").
+            const previousCount = refTicketsCount.current;
+            const fetched = refCurrentGameId.current ? await getTickets(refCurrentGameId.current, true) : undefined;
+            const mine = fetched ? Math.max(0, fetched.active - previousCount) : 0;
 
-            if (refCurrentGameId.current) {
-                getTickets(refCurrentGameId.current);
-            }
-            setCurrentTotalTickets(after);
+            const rect = refTicketsButton.current?.getBoundingClientRect();
+            const dx = rect ? rect.left + rect.width / 2 - window.innerWidth / 2 : 0;
+            const dy = rect ? rect.top + rect.height / 2 - window.innerHeight / 2 : 0;
+
+            const flyEnd = EXTRA_TICKETS_FLY_START_MS + EXTRA_TICKETS_FLY_MS;
+            const later = (fn: () => void, ms: number) => {
+                refExtraTimeouts.current.push(setTimeout(fn, ms));
+            };
+
+            later(() => setExtraTicketsAnim((prev) => prev ? { ...prev, phase: 'fly', mine, dx, dy } : prev), EXTRA_TICKETS_FLY_START_MS);
+            later(() => {
+                if (fetched) applyTickets(fetched.data);
+                if (mine > 0) setTicketsPulse(true);
+            }, flyEnd);
+            later(() => setTicketsPulse(false), flyEnd + 900);
+            later(() => setExtraTicketsAnim(null), flyEnd + 200);
         })
 
         socket.on("spin", (winning_number, dataRoulette, winners) => {
@@ -472,9 +497,7 @@ export default function Ruleta () {
             if (refExtraInterval.current) {
                 clearInterval(refExtraInterval.current);
             }
-            if (refExtraTimeout.current) {
-                clearTimeout(refExtraTimeout.current);
-            }
+            refExtraTimeouts.current.forEach(clearTimeout);
             socket.off("extraTickets");
             socket.off("spin");
             socket.off("prizesUpdated");
@@ -574,7 +597,16 @@ export default function Ruleta () {
         }
     }
 
-    async function getTickets (game_id: number) {
+    function applyTickets (dataTickets: TicketData[]) {
+        const activeTickets = dataTickets.filter((ticket: TicketData) => ticket.status !== 'eliminated');
+        refTicketsCount.current = activeTickets.length;
+        setCurrentTicketsList(dataTickets);
+        setCurrentTotalTickets(activeTickets.length);
+        return activeTickets.length;
+    }
+
+    // Con deferApply no actualiza el estado: devuelve los datos para aplicarlos después (animación de tickets bonus).
+    async function getTickets (game_id: number, deferApply: boolean = false) {
 
         const token = localStorage.getItem('token');
 
@@ -593,9 +625,12 @@ export default function Ruleta () {
                 return
             }
 
-            const activeTickets = dataTickets.filter((ticket: TicketData) => ticket.status !== 'eliminated');
-            setCurrentTicketsList(dataTickets);
-            setCurrentTotalTickets(activeTickets.length);
+            if (deferApply) {
+                const active = dataTickets.filter((ticket: TicketData) => ticket.status !== 'eliminated').length;
+                return { data: dataTickets as TicketData[], active };
+            }
+
+            applyTickets(dataTickets);
 
         } catch (error) {
             console.log("Error in getTickets: ", error)
@@ -805,18 +840,25 @@ export default function Ruleta () {
                 </div>
             </dialog>
             {extraTicketsAnim ? (
-                <div className='casino_overlay fixed inset-0 z-50 flex flex-col justify-center items-center bg-black/85 px-4 overflow-hidden'>
-                    {Array.from({ length: 24 }, (_, i) => (
+                <div className={'casino_overlay fixed inset-0 z-50 flex flex-col justify-center items-center px-4 overflow-hidden transition-colors duration-700 ' + (extraTicketsAnim.phase === 'fly' ? 'bg-black/0 pointer-events-none' : 'bg-black/85')}>
+                    {extraTicketsAnim.phase === 'count' ? Array.from({ length: 24 }, (_, i) => (
                         <span key={i} className='casino_coin' style={{ left: `${(i * 4.3) % 100}%`, animationDelay: `${(i % 8) * 0.25}s`, animationDuration: `${2.5 + (i % 5) * 0.4}s` }} />
-                    ))}
-                    <div className='casino_frame flex flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-[rgb(60,0,0)] px-8 py-10 sm:px-16 text-center'>
-                        <p className='casino_title casino_marquee text-2xl sm:text-4xl tracking-widest text-yellow-300'>¡TICKETS EXTRA!</p>
+                    )) : null}
+                    <div className={'casino_frame flex flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-[rgb(60,0,0)] px-8 py-10 sm:px-16 text-center' + (extraTicketsAnim.phase === 'fly' ? ' casino_bonus_out' : '')}>
+                        <p className='casino_title casino_marquee text-2xl sm:text-4xl tracking-widest text-yellow-300'>¡TICKETS BONUS!</p>
                         <div className='casino_number flex justify-center items-center min-w-40 h-40 sm:min-w-56 sm:h-56 px-8 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 casino_marquee text-6xl sm:text-8xl text-white tabular-nums'>
                             +{extraTicketsAnim.current}
                         </div>
-                        <p className='text-lg sm:text-2xl text-white'>de {extraTicketsAnim.added} tickets repartidos entre los participantes</p>
-                        <p className='text-xl sm:text-3xl font-bold text-yellow-200 tabular-nums'>Total en juego: {extraTicketsAnim.total}</p>
+                        <p className='text-lg sm:text-2xl text-white'>{extraTicketsAnim.added} tickets repartidos entre los participantes</p>
                     </div>
+                    {extraTicketsAnim.phase === 'fly' ? Array.from({ length: Math.min(extraTicketsAnim.mine, 12) }, (_, i) => (
+                        <FaTicketAlt
+                            key={i}
+                            size={36}
+                            className='casino_ticket_fly absolute left-1/2 top-1/2 -ml-[18px] -mt-[18px]'
+                            style={{ '--dx': `${extraTicketsAnim.dx}px`, '--dy': `${extraTicketsAnim.dy}px`, animationDelay: `${i * 70}ms`, animationDuration: '1000ms' } as React.CSSProperties}
+                        />
+                    )) : null}
                 </div>
             ) : null}
             {winnerCelebration ? (
@@ -864,7 +906,7 @@ export default function Ruleta () {
                 </div>
                 <div className='fixed flex flex-col items-center p-3 box-border bottom-5 right-5 sm:bottom-10 sm:right-10 z-10 bg-[rgba(0,0,0,0.7)] rounded-xl'>
                     <p className='casino_heading text-[0.9rem]'>Mis tickets:</p>
-                    <div className='relative'>
+                    <div ref={refTicketsButton} className={'relative rounded-full' + (ticketsPulse ? ' casino_ticket_pulse' : '')}>
                         <button
                             onClick={() => (currentTotalTickets ?? 0) > 0 && setShowTicketPanel(prev => !prev)}
                             disabled={(currentTotalTickets ?? 0) === 0}
