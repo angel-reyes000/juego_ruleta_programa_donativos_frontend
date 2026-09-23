@@ -831,3 +831,36 @@
     width: 86%;
     height: 86%;
 }
+
+/* Tickets bonus: el recuadro se encoge y los tickets vuelan hasta el boton "Mis tickets". */
+.casino_bonus_out {
+    animation: casino_bonus_out 0.5s ease-in forwards !important;
+}
+
+@keyframes casino_bonus_out {
+    to { transform: scale(0.4); opacity: 0; }
+}
+
+.casino_ticket_fly {
+    animation-name: casino_ticket_fly;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+    animation-fill-mode: both;
+    color: #ffd23f;
+    filter: drop-shadow(0 0 8px rgba(255, 210, 63, 0.9));
+}
+
+@keyframes casino_ticket_fly {
+    0% { transform: translate(0, 0) scale(1.6) rotate(0deg); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0.9; }
+}
+
+.casino_ticket_pulse {
+    animation: casino_ticket_pulse 0.9s ease-out;
+}
+
+@keyframes casino_ticket_pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 210, 63, 0.9); }
+    35% { transform: scale(1.35); box-shadow: 0 0 24px 10px rgba(255, 210, 63, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 210, 63, 0); }
+}
