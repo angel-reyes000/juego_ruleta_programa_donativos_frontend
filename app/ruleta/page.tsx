@@ -593,6 +593,18 @@ export default function Ruleta () {
             // El resultado se publica cuando termina la animacion para no adelantar el numero ganador.
             setTimeout(() => {
                 socket.emit("latestResults", dataSpin.winning_number, dataSpin.game_id, dataSpin.round_number, dataSpin.spin_number, dataSpin.prize_name)
+
+                // Ronda 5: si solo quedaba un numero, el servidor ya le asigno el premio automaticamente.
+                // Se encadena su animacion sin requerir otro clic del admin.
+                const autoAssigned = dataSpin.auto_assigned;
+
+                if (autoAssigned) {
+                    socket.emit("spin", autoAssigned.winning_number, dataRoulette, autoAssigned.winners);
+
+                    setTimeout(() => {
+                        socket.emit("latestResults", autoAssigned.winning_number, dataSpin.game_id, autoAssigned.round_number, autoAssigned.spin_number, autoAssigned.prize_name)
+                    }, 10500)
+                }
             }, 10500)
 
         } catch (error) {
@@ -772,7 +784,7 @@ export default function Ruleta () {
                     </div>
                     <div className="flex flex-row flex-wrap justify-center sm:justify-around items-center w-full gap-3 sm:gap-5">
                         <p className='casino_chip text-sm sm:text-lg'>{`Ronda: ${currentRoundData?.number}/5`}</p>
-                        <p className='casino_chip text-sm sm:text-lg'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.spins}`}</p>
+                        <p className='casino_chip text-sm sm:text-lg'>{`Giro ${currentRoundData?.total_current_spins}/${currentRoundData?.number === 5 ? 10 : currentRoundData?.spins}`}</p>
                         <p className='casino_chip text-sm sm:text-lg'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
                     </div>
                 </div>
