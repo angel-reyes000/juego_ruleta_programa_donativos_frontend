@@ -275,6 +275,12 @@ export default function Ruleta () {
             console.log("Evento spin creado");
             console.log("GIRANDO A TODOS")
 
+            // Actualiza tickets/boton en tiempo real apenas llega el resultado del giro,
+            // sin esperar a que termine la animacion de la ruleta.
+            if (refCurrentGameId.current) {
+                getTickets(refCurrentGameId.current);
+            }
+
             if (refRoulette.current) {
                 refRoulette.current.items = dataRoulette.items;
             } else {
@@ -788,15 +794,22 @@ export default function Ruleta () {
                         <p className='casino_chip text-sm sm:text-lg'>{`Donadores: ${currentUsersWithDonation ?? 0} / ${currentGameData?.max_capacity ?? 0}`}</p>
                     </div>
                 </div>
-                <div className='absolute top-[400px] sm:top-[300px] lg:top-[260px] z-10'>
-                    <button
-                        onClick={() => setShowTicketPanel(prev => !prev)}
-                        className='casino_btn p-2 sm:p-3 rounded-full'
-                        title='Mis tickets'
-                    >
-                        <FaTicketAlt size={28} className='rotate-45 sm:hidden'/>
-                        <FaTicketAlt size={40} className='rotate-45 hidden sm:block'/>
-                    </button>
+                <div className='fixed flex flex-col items-center p-3 box-border bottom-5 right-5 sm:bottom-10 sm:right-10 z-10 bg-[rgba(0,0,0,0.7)] rounded-xl'>
+                    <p className='casino_heading text-[0.9rem]'>Mis tickets:</p>
+                    <div className='relative'>
+                        <button
+                            onClick={() => (currentTotalTickets ?? 0) > 0 && setShowTicketPanel(prev => !prev)}
+                            disabled={(currentTotalTickets ?? 0) === 0}
+                            className={'casino_btn p-2 sm:p-3 rounded-full' + ((currentTotalTickets ?? 0) === 0 ? ' opacity-40 cursor-not-allowed' : '')}
+                            title='Mis tickets'
+                        >
+                            <FaTicketAlt size={28} className='rotate-45 sm:hidden'/>
+                            <FaTicketAlt size={40} className='rotate-45 hidden sm:block'/>
+                        </button>
+                        {(currentTotalTickets ?? 0) === 0 ? (
+                            <p className='absolute inset-0 flex items-center justify-center text-center text-red-500 text-[0.6rem] sm:text-xs font-bold leading-tight pointer-events-none'>Sin tickets</p>
+                        ) : null}
+                    </div>
                     {showTicketPanel && (
                         <div className='absolute top-full left-0 mt-2 casino_card p-3 sm:p-4 w-60 flex flex-col gap-2' style={{maxHeight: '16rem', overflowY: 'auto'}}>
                             <h3 className='casino_heading text-sm sm:text-base'>Mis tickets activos</h3>
