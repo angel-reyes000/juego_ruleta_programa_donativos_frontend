@@ -117,6 +117,10 @@ const initialRouletteData: RouletteData = {
 
 let IndexWinningTicket = 0;
 
+// Duración del conteo de tickets extra y tiempo total que se muestra la animación.
+const EXTRA_TICKETS_COUNT_MS = 4000;
+const EXTRA_TICKETS_SHOW_MS = 7000;
+
 // Aspecto casino de la ruleta: casillas rojo/negro, texto y bordes dorados.
 const casinoWheelStyle = {
     itemBackgroundColors: ['#d50032', '#15000c'],
@@ -148,6 +152,8 @@ export default function Ruleta () {
     const [messageFloating, setMessageFloating] = useState<messageFloating>({show: false, messages: [], type: 'info'});
     // Número ganador que se muestra en la animación estilo casino al terminar el giro.
     const [winnerCelebration, setWinnerCelebration] = useState<Celebration | null>(null);
+    // Animación de tickets extra repartidos al iniciar el sorteo (current = extras mostrados, total = tickets del juego).
+    const [extraTicketsAnim, setExtraTicketsAnim] = useState<{ added: number, current: number, total: number } | null>(null);
     const [spinBusy, setSpinBusy] = useState<boolean>(false);
     const [currentTickets, setCurrentTicketsList] = useState<TicketData[]>([]);
     const [showTicketPanel, setShowTicketPanel] = useState<boolean>(false);
@@ -168,6 +174,8 @@ export default function Ruleta () {
     // Ganador del giro en curso; se muestra cuando la ruleta se detiene (onRest).
     const refPendingWinner = useRef<Celebration | null>(null);
     const refUserId = useRef<number | undefined>(undefined);
+    const refExtraInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    const refExtraTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const refCelebrationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const router = useRouter();
@@ -270,6 +278,36 @@ export default function Ruleta () {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
+
+        // Animación de tickets extra: el total sube en tiempo real de "before" a "after".
+        socket.on("extraTickets", (added: number, before: number, after: number) => {
+            if (!(added > 0)) return;
+
+            if (refExtraInterval.current) clearInterval(refExtraInterval.current);
+            if (refExtraTimeout.current) clearTimeout(refExtraTimeout.current);
+
+            const steps = Math.min(added, 80);
+            let step = 0;
+            setExtraTicketsAnim({ added, current: 0, total: before });
+
+            refExtraInterval.current = setInterval(() => {
+                step += 1;
+                const done = Math.round((added * step) / steps);
+                setExtraTicketsAnim({ added, current: done, total: before + done });
+
+                if (step >= steps && refExtraInterval.current) {
+                    clearInterval(refExtraInterval.current);
+                    refExtraInterval.current = null;
+                }
+            }, EXTRA_TICKETS_COUNT_MS / steps);
+
+            refExtraTimeout.current = setTimeout(() => setExtraTicketsAnim(null), EXTRA_TICKETS_SHOW_MS);
+
+            if (refCurrentGameId.current) {
+                getTickets(refCurrentGameId.current);
+            }
+            setCurrentTotalTickets(after);
+        })
 
         socket.on("spin", (winning_number, dataRoulette, winners) => {
             console.log("Evento spin creado");
@@ -431,6 +469,13 @@ export default function Ruleta () {
             if (refCelebrationTimeout.current) {
                 clearTimeout(refCelebrationTimeout.current);
             }
+            if (refExtraInterval.current) {
+                clearInterval(refExtraInterval.current);
+            }
+            if (refExtraTimeout.current) {
+                clearTimeout(refExtraTimeout.current);
+            }
+            socket.off("extraTickets");
             socket.off("spin");
             socket.off("prizesUpdated");
             socket.off("updateRoundSpins");
@@ -594,6 +639,14 @@ export default function Ruleta () {
 
             const { dataRoulette } = result;
 
+            // Primer giro: si se repartieron tickets extra, se muestra su animacion antes de girar la ruleta.
+            const extraTickets = dataSpin.extra_tickets;
+
+            if (extraTickets && extraTickets.added > 0) {
+                socket.emit("extraTickets", extraTickets.added, extraTickets.before, extraTickets.after);
+                await new Promise((resolve) => setTimeout(resolve, EXTRA_TICKETS_SHOW_MS + 500));
+            }
+
             socket.emit("spin", dataSpin.winning_number, dataRoulette, dataSpin.winners);
 
             // El resultado se publica cuando termina la animacion para no adelantar el numero ganador.
@@ -751,6 +804,21 @@ export default function Ruleta () {
                     </p>
                 </div>
             </dialog>
+            {extraTicketsAnim ? (
+                <div className='casino_overlay fixed inset-0 z-50 flex flex-col justify-center items-center bg-black/85 px-4 overflow-hidden'>
+                    {Array.from({ length: 24 }, (_, i) => (
+                        <span key={i} className='casino_coin' style={{ left: `${(i * 4.3) % 100}%`, animationDelay: `${(i % 8) * 0.25}s`, animationDuration: `${2.5 + (i % 5) * 0.4}s` }} />
+                    ))}
+                    <div className='casino_frame flex flex-col items-center gap-4 rounded-3xl border-4 border-yellow-400 bg-[rgb(60,0,0)] px-8 py-10 sm:px-16 text-center'>
+                        <p className='casino_title casino_marquee text-2xl sm:text-4xl tracking-widest text-yellow-300'>¡TICKETS EXTRA!</p>
+                        <div className='casino_number flex justify-center items-center min-w-40 h-40 sm:min-w-56 sm:h-56 px-8 rounded-full border-8 border-yellow-300 bg-linear-to-b from-red-600 to-red-900 casino_marquee text-6xl sm:text-8xl text-white tabular-nums'>
+                            +{extraTicketsAnim.current}
+                        </div>
+                        <p className='text-lg sm:text-2xl text-white'>de {extraTicketsAnim.added} tickets repartidos entre los participantes</p>
+                        <p className='text-xl sm:text-3xl font-bold text-yellow-200 tabular-nums'>Total en juego: {extraTicketsAnim.total}</p>
+                    </div>
+                </div>
+            ) : null}
             {winnerCelebration ? (
                 <div onClick={() => setWinnerCelebration(null)} className='casino_overlay fixed inset-0 z-50 flex flex-col justify-center items-center bg-black/85 cursor-pointer px-4 overflow-hidden'>
                     {Array.from({ length: 24 }, (_, i) => (
