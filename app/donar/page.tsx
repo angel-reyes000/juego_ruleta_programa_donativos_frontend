@@ -6,7 +6,7 @@ import MessageFloating from "@/components/messageFloating";
 import { messageFloating } from "@/components/messageFloating";
 import personas_ayudando from '@/public/images/personas_ayudando.jpg';
 import Image from 'next/image';
-import { FaArrowRight, FaArrowLeft, FaPlus } from "react-icons/fa";
+import { FaArrowRight, FaArrowLeft, FaPlus, FaTicketAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import chip from '@/public/images/chip_credit_card.jpg';
@@ -46,14 +46,37 @@ async function createPayment ({ amount, cardHolder }: { amount: number, cardHold
 
         if (response.status !== 200) {
             console.log("Error al registrar pago")
-            return data.error
+            return { message: data.error as string, donationId: undefined }
         }
 
-        return data.message
+        return { message: data.message as string, donationId: data.donation_id as number | undefined }
 
     } catch (error) {
         console.log("Error in createPayment", error)
-    }    
+    }
+}
+
+// Tickets asignados por la donación recién hecha, agrupados por número.
+async function getDonationTickets (donationId: number): Promise<Record<number, number>> {
+    const token = localStorage.getItem('token');
+    const headers = { authorization: `Bearer ${token}` };
+    const grouped: Record<number, number> = {};
+    try {
+        const responseGame = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getCurrentGame`, { headers });
+        if (responseGame.status !== 200) return grouped;
+        const game = await responseGame.json();
+
+        const responseTickets = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getTickets?game_id=${game.id}`, { headers });
+        if (responseTickets.status !== 200) return grouped;
+        const tickets: { donation_id?: number, ticket_number?: number }[] = await responseTickets.json();
+
+        tickets
+            .filter(t => t.donation_id === donationId && t.ticket_number != null)
+            .forEach(t => { grouped[t.ticket_number!] = (grouped[t.ticket_number!] ?? 0) + 1; });
+    } catch (error) {
+        console.log("Error in getDonationTickets", error)
+    }
+    return grouped;
 }
 
 function FormPayment () {
@@ -73,6 +96,8 @@ function FormPayment () {
     });
 
     const refModal = useRef<HTMLDialogElement>(null);
+    const refTicketsModal = useRef<HTMLDialogElement>(null);
+    const [donationTickets, setDonationTickets] = useState<Record<number, number>>({});
 
     const router = useRouter();
 
@@ -166,8 +191,13 @@ function FormPayment () {
             if (result.paymentIntent?.status === "succeeded") {
                 console.log("Pago realizado correctamente");
 
-                const message = await createPayment({ amount, cardHolder });
-                setShowMessage({show: true, messages: ["Pago realizado correctamente", message,], type: "good"});
+                const payment = await createPayment({ amount, cardHolder });
+                setShowMessage({show: true, messages: ["Pago realizado correctamente", payment?.message ?? ""], type: "good"});
+
+                if (payment?.donationId != null) {
+                    setDonationTickets(await getDonationTickets(payment.donationId));
+                    refTicketsModal.current?.showModal();
+                }
 
                 setCelebration(true);
                 setAmount(0);
@@ -209,6 +239,40 @@ function FormPayment () {
                         </p>
                         <button onClick={() => router.push('/acercaDe')} className='casino_btn casino_btn_red w-[80%]'>
                             Contactar ahora.
+                        </button>
+                    </div>
+                </dialog>
+                <dialog ref={refTicketsModal} className='casino_modal m-auto text-center w-[90%] sm:w-[60%] md:w-[45%] lg:w-[30%]'>
+                    <div className='flex flex-col items-center text-white p-5 gap-4'>
+                        <div className='flex justify-end items-center w-full'>
+                            <FaPlus onClick={() => refTicketsModal.current?.close()} className="rotate-45 text-casino-gold hover:cursor-pointer" size={20} />
+                        </div>
+                        <FaTicketAlt size={40} className='text-casino-gold rotate-45' />
+                        <h3 className='casino_heading text-lg'>¡Gracias por tu donación!</h3>
+                        {(() => {
+                            const entries = Object.entries(donationTickets).sort(([a], [b]) => Number(a) - Number(b));
+                            const total = entries.reduce((sum, [, count]) => sum + count, 0);
+                            if (entries.length === 0) {
+                                return <p className='text-white/60 text-sm'>No se encontraron tickets para esta donación.</p>;
+                            }
+                            return (
+                                <>
+                                    <p className='font-semibold'>Se te asignaron {total} {total === 1 ? 'ticket' : 'tickets'}:</p>
+                                    <div className='w-full' style={{maxHeight: '16rem', overflowY: 'auto'}}>
+                                        <table className='casino_table w-full text-sm'>
+                                            <thead><tr><th>Número</th><th>Cantidad</th></tr></thead>
+                                            <tbody>
+                                                {entries.map(([num, count]) => (
+                                                    <tr key={num}><td>{num}</td><td>{count}</td></tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
+                            );
+                        })()}
+                        <button type='button' onClick={() => refTicketsModal.current?.close()} className='casino_btn casino_btn_red w-[80%]'>
+                            Cerrar
                         </button>
                     </div>
                 </dialog>
