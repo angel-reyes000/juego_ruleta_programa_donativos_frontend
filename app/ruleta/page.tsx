@@ -372,6 +372,8 @@ export default function Ruleta () {
             };
 
             refIsSpinning.current = true;
+            // Sonido en tiempo real para todos los clientes, justo cuando la ruleta empieza a girar.
+            spinRouletteSound();
             refRoulette.current?.spinToItem(
                 winningItemIndex,
                 10000, // tiempo girando
@@ -489,6 +491,11 @@ export default function Ruleta () {
             once: false,
         })
 
+        const casinoMusic = new Audio("/sounds/music_casino.mp3");
+        casinoMusic.volume = 0.4;
+        casinoMusic.loop = true;
+        casinoMusic.play();
+
         return () => {
             refRoulette.current?.remove();
             if (refCelebrationTimeout.current) {
@@ -504,6 +511,7 @@ export default function Ruleta () {
             socket.off("updateRoundSpins");
             socket.off("latestResults");
             socket.off("connect");
+            casinoMusic.pause();
         }
 
     }, []);
@@ -820,6 +828,40 @@ export default function Ruleta () {
 
         } catch (error) {
             console.log("Error in ruleta/getPrizes: ", error);
+        }
+    }
+
+    function spinRouletteSound () {
+        const spinSound = new Audio("/sounds/spin_roulette.mp3");
+        const soundCoins = new Audio("/sounds/sound_coins.mp3");
+        const soundCash = new Audio("/sounds/sound_cash.mp3");
+
+        try {
+            spinSound.play();
+            spinSound.volume = 1;
+            spinSound.playbackRate = 1.5;
+            setTimeout(() => {
+                spinSound.playbackRate = 1.3
+                spinSound.currentTime = 0
+            }, 5000);
+            setTimeout(() => {
+                spinSound.playbackRate = 1.2
+            }, 9000);
+            setTimeout(() => {
+                spinSound.pause();
+                soundCash.play();
+                soundCoins.play();
+                soundCoins.playbackRate = 1.5;
+                soundCoins.loop = true;
+            }, 10000);         
+            
+            setTimeout(() => soundCoins.volume = 0.8, 15000);
+            setTimeout(() => soundCoins.volume = 0.6, 17000);
+            setTimeout(() => soundCoins.volume = 0.3, 18000);
+            setTimeout(() => soundCoins.volume = 0.1, 19000);
+            setTimeout(() => soundCoins.pause(), 20000);
+        } catch {
+            console.log("Error in spinRouletteSound")
         }
     }
 
