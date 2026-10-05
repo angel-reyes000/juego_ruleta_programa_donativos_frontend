@@ -24,10 +24,11 @@ import {
     useStripe,
 } from "@stripe/react-stripe-js";
 import DonationCelebration from "@/components/donationCelebration";
+import { SalesPerson } from '@/app/schemas';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-async function createPayment ({ amount, cardHolder }: { amount: number, cardHolder: string }) {
+async function createPayment ({ amount, cardHolder, salesPersonId }: { amount: number, cardHolder: string, salesPersonId?: number }) {
     const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/createPayment`, {
@@ -39,6 +40,7 @@ async function createPayment ({ amount, cardHolder }: { amount: number, cardHold
             body: JSON.stringify({
                 amount: amount,
                 card_holder: cardHolder,
+                salesperson_id: salesPersonId ?? null,
             })
         })
 
@@ -85,6 +87,8 @@ function FormPayment () {
     const [amount, setAmount] = useState<number>(0);
     const [cardHolder, setCardHolder] = useState<string>("");
     const [checkBox, setCheckBox] = useState<boolean>(false);
+    const [listSalesPerson, setListSalesPerson] = useState<Array<SalesPerson>>([]);
+    const [salesPersonId, setSalesPersonId] = useState<number>();
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
@@ -108,6 +112,35 @@ function FormPayment () {
             delay: 0,
             once: true,
         })
+
+        async function getSalesPerson () {
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/api/getSalesPerson`, {
+                    method: 'GET',
+                    headers: {
+                        authorization: `Bearer ${token}`,
+                        "content-type": "application/json",
+                    }
+                })
+
+                const data = await response.json()
+
+                if (response.status != 200) {
+                    console.log("Error in getSalesPersonFront: ", data.message)
+                    return
+                }
+
+                setListSalesPerson(data);
+
+            } catch (error) {
+                console.log("Error in getSalesPersonFront: ", error)
+            }
+        }
+
+        getSalesPerson();
 
     }, [])
 
@@ -191,7 +224,7 @@ function FormPayment () {
             if (result.paymentIntent?.status === "succeeded") {
                 console.log("Pago realizado correctamente");
 
-                const payment = await createPayment({ amount, cardHolder });
+                const payment = await createPayment({ amount, cardHolder, salesPersonId });
                 setShowMessage({show: true, messages: ["Pago realizado correctamente", payment?.message ?? ""], type: "good"});
 
                 if (payment?.donationId != null) {
@@ -343,7 +376,7 @@ function FormPayment () {
                                 />                                    
                             </label> 
                         </div>
-                    </div>                    
+                    </div>
                     <label className="flex flex-col text-[0.9rem] font-semibold w-[100%]">
                         <div>Cantidad a donar<span className="text-red-500">*</span></div>
                         <div className="flex gap-1 w-full">
@@ -351,7 +384,16 @@ function FormPayment () {
                             <p>$ Pesos MXN</p>
                         </div>
                         <p className="text-[0.8rem] text-white/60">Solo se aceptan cantidades en múltiplos de $100 (ej. $100, $200, $300).</p>
-                    </label>
+                    </label>  
+                    <label className='flex flex-col text-[0.9rem] font-semibold w-[100%]'>
+                        Personal que le ayudo a realizar la compra? (Opcional):
+                        <select onChange={(e) => setSalesPersonId(Number(e.target.value))} className='casino_input w-[150px] font-normal cursor-pointer'>
+                            <option>La realice por mi cuenta.</option>
+                            {listSalesPerson?.map((person: SalesPerson) => (
+                                <option value={person.id} key={person.id}>{person.name} {person.last_name}</option>
+                            ))}
+                        </select>
+                    </label>              
                     {error && <p className="casino_error m-0 text-right w-full">{error}</p>}
                     <label className="flex gap-2">
                         <input checked={checkBox} onChange={(e) => setCheckBox(e.target.checked)} type="checkbox" className="cursor-pointer active:scale-80 accent-[#ffd23f] w-5 h-5"/>
