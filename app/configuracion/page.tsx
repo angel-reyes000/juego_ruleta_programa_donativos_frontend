@@ -35,6 +35,8 @@ interface Game {
     end_datetime: string
     max_capacity: number
     description: string
+    distribute_tickets?: boolean
+    has_started?: boolean
     prize_list: Prize[]
 }
 
@@ -57,6 +59,7 @@ export default function Configuracion () {
         end_datetime: "",
         max_capacity: 5000,
         description: "",
+        distribute_tickets: false,
         prize_list: prizeList!,
     });
     const [prize, setPrize] = useState<Prize>({
@@ -131,6 +134,7 @@ export default function Configuracion () {
                     end_datetime: game.end_datetime,
                     max_capacity: game.max_capacity,
                     description: game.description,
+                    distribute_tickets: game.distribute_tickets,
                     prize_list: game.prize_list,
                 })
             })
@@ -174,6 +178,7 @@ export default function Configuracion () {
                     end_datetime: game.end_datetime,
                     max_capacity: game.max_capacity,
                     description: game.description,
+                    distribute_tickets: game.distribute_tickets,
                     prize_list: game.prize_list,
                     gameId: gameId,
                 })
@@ -193,6 +198,8 @@ export default function Configuracion () {
                     end_datetime: data.end_datetime,
                     max_capacity: data.max_capacity,
                     description: data.description,
+                    distribute_tickets: data.distribute_tickets,
+                    has_started: data.has_started,
                     prize_list: data.prize_list
                 } : obj))
 
@@ -418,6 +425,10 @@ export default function Configuracion () {
                         descripcion:
                         <input value={game.description ?? ""} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='casino_input font-medium'></input>
                     </label>
+                    <label className='flex flex-row items-end justify-end font-semibold w-full md:w-[49%] gap-2'>
+                        Reparticion de tickets
+                        <input type='checkbox' checked={game.distribute_tickets ?? false} onChange={(e) => setGame(prev => ({...prev, distribute_tickets: e.target.checked}))} className='cursor-pointer disabled:cursor-not-allowed active:scale-80 accent-[#ffd23f] w-5 h-5'></input>
+                    </label>
                 </div>
                 <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
                 <h1 className='casino_heading text-2xl'>Premios</h1>
@@ -532,6 +543,10 @@ export default function Configuracion () {
                     <label className='flex flex-col font-semibold w-full md:w-[49%]'>
                         descripcion:
                         <input value={game.description} onChange={(e) => setGame(prev => ({...prev, description: e.target.value}))} className='casino_input font-medium'></input>
+                    </label>
+                    <label className={`flex flex-row items-center justify-center font-semibold w-full md:w-[49%] gap-2 ${game.has_started ? 'opacity-50' : ''}`}>
+                        Reparticion de tickets
+                        <input type='checkbox' checked={game.distribute_tickets ?? false} disabled={game.has_started} title={game.has_started ? 'El juego ya comenzo' : undefined} onChange={(e) => setGame(prev => ({...prev, distribute_tickets: e.target.checked}))} className='cursor-pointer disabled:cursor-not-allowed active:scale-80 accent-[#ffd23f] w-5 h-5'></input>
                     </label>
                 </div>
                 <p className='w-full text-right casino_error text-[0.9rem]'>{errorGame}</p>
@@ -671,6 +686,7 @@ export default function Configuracion () {
                                         end_datetime: "",
                                         max_capacity: 5000,
                                         description: "",
+                                        distribute_tickets: false,
                                         prize_list: [],
                                 })
                                 setPrize({
