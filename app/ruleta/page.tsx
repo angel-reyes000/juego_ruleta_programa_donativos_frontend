@@ -928,7 +928,7 @@ export default function Ruleta () {
                     </div>
                 </div>
             ) : null}
-            <div className="flex flex-col h-auto min-h-dvh py-5 px-4 sm:px-10 gap-16">
+            <div className="flex flex-col h-auto min-h-dvh py-5 px-4 sm:px-10 gap-16 pb-40">
                 {showMessageFloating ? <MessageFloating show={messageFloating?.show} messages={messageFloating?.messages} type={messageFloating?.type} /> : null}
                 <div className="flex flex-col md:flex-col justify-between items-center text-white gap-10">
                     <div className='flex flex-col sm:flex-row justify-between w-full gap-4'>
@@ -1025,7 +1025,7 @@ export default function Ruleta () {
                             <div className="flex flex-col gap-5 overflow-y-scroll casino_scroll px-3">
                                 {rounds?.map((round: RoundsData) => (
                                     <div key={round.id} className={"flex justify-between pb-1 text-lg border-b-2 border-casino-gold/40 font-semibold gap-2" + (currentRoundData.number === round.number ? '  ' : ' opacity-50 ')}>
-                                        <div className='flex items-center gap-1'>
+                                        <div className='flex items-center gap-1 px-3 py-5'>
                                             <p className={'casino_round_dot' + (currentRoundData.number === round.number ? ' casino_round_active' : '')}>{round.number}</p>
                                             <p>Ronda</p>
                                         </div>
@@ -1053,7 +1053,7 @@ export default function Ruleta () {
                     </div>
                 </div>
                 <div className='flex flex-col text-white gap-10'>
-                    <h2 className='casino_heading text-3xl sm:text-5xl'>¿Como funciona?</h2>
+                    <h2 className='casino_heading text-3xl sm:text-5xl p-2'>¿Como funciona?</h2>
                     <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center'>
                         <div data-aos='fade-right' className='casino_card flex flex-col px-5 py-4 gap-2'>
                             <h3 className='casino_heading text-2xl'>Ronda 1</h3> 
